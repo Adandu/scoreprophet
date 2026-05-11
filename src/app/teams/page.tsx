@@ -20,13 +20,15 @@ export default async function TeamsPage() {
           <Link
             key={team.externalId}
             href={`/teams/${team.externalId}`}
-            className="flex flex-col items-center gap-2 rounded-xl border border-white/10 bg-white/5 p-4 hover:bg-white/10 transition-colors"
+            className="flex flex-col items-center justify-between gap-2 rounded-xl border border-white/10 bg-white/5 p-4 hover:bg-white/10 transition-colors"
           >
-            {team.crest ? (
-              <Image src={team.crest} alt={team.name} width={48} height={48} className="object-contain" />
-            ) : (
-              <div className="h-12 w-12 rounded bg-white/10" />
-            )}
+            <div className="flex h-12 w-12 items-center justify-center">
+              {team.crest ? (
+                <Image src={team.crest} alt={team.name} width={48} height={48} className="object-contain max-h-12" />
+              ) : (
+                <div className="h-12 w-12 rounded bg-white/10" />
+              )}
+            </div>
             <span className="text-xs text-center text-white/80 leading-tight">{team.name}</span>
           </Link>
         ))}

@@ -51,18 +51,18 @@ export async function logout() {
   redirect('/login')
 }
 
-const VALID_TIMEZONES = [
-  'Etc/GMT+12', 'Etc/GMT+11', 'Etc/GMT+10', 'Etc/GMT+9', 'Etc/GMT+8',
-  'Etc/GMT+7',  'Etc/GMT+6',  'Etc/GMT+5',  'Etc/GMT+4', 'Etc/GMT+3',
-  'Etc/GMT+2',  'Etc/GMT+1',  'UTC',
-  'Etc/GMT-1',  'Etc/GMT-2',  'Etc/GMT-3',  'Etc/GMT-4', 'Etc/GMT-5',
-  'Etc/GMT-6',  'Etc/GMT-7',  'Etc/GMT-8',  'Etc/GMT-9', 'Etc/GMT-10',
-  'Etc/GMT-11', 'Etc/GMT-12',
-]
+function isValidTimezone(tz: string): boolean {
+  try {
+    Intl.DateTimeFormat(undefined, { timeZone: tz })
+    return true
+  } catch {
+    return false
+  }
+}
 
 export async function updateTimezone(timezone: string) {
   const session = await requireAuth()
-  if (!VALID_TIMEZONES.includes(timezone)) return
+  if (!isValidTimezone(timezone)) return
   await prisma.user.update({ where: { id: session.userId! }, data: { timezone } })
   session.timezone = timezone
   await session.save()
