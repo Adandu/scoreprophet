@@ -81,11 +81,13 @@ export default async function PredictionsPage() {
                       <>
                         <PredictionForm
                           matchId={match.id}
+                          homeTeam={match.homeTeam}
+                          awayTeam={match.awayTeam}
                           existing={existing}
                           isKnockout={match.stage !== 'GROUP'}
                           existingAdvanceTeam={advanceByMatch[match.id]}
                         />
-                        {existing.length > 0 && (
+                        {(existing.length > 0 || advanceByMatch[match.id]) && (
                           <ResetButton matchId={match.id} />
                         )}
                       </>

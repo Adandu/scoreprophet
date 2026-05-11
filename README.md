@@ -1,36 +1,77 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# ScoreProphet
 
-## Getting Started
+ScoreProphet is a private World Cup 2026 prediction app. Players predict match outcomes, exact scores, and knockout advancing teams; admins sync fixtures from football-data.org, enter or override results, and recalculate points.
 
-First, run the development server:
+## Stack
+
+- Next.js App Router
+- React 19
+- Prisma 7 with SQLite and `better-sqlite3`
+- `iron-session` cookie sessions
+- Tailwind CSS
+- Vitest
+
+## Environment
+
+Create `.env` from `.env.example` and set:
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+DATABASE_URL="file:./dev.db"
+FOOTBALL_API_KEY="..."
+ADMIN_USERNAME="admin"
+ADMIN_PASSWORD="at_least_6_chars"
+SESSION_SECRET="at_least_32_characters_random_string"
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+`ADMIN_USERNAME` and `ADMIN_PASSWORD` are used only when registering the initial admin account. A matching username/password pair creates an admin user; later logins do not promote users based on the shared password.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Local Development
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+npm install
+DATABASE_URL="file:./dev.db" npx prisma migrate dev
+DATABASE_URL="file:./dev.db" npm run sync
+npm run dev
+```
 
-## Learn More
+Open `http://localhost:3000`.
 
-To learn more about Next.js, take a look at the following resources:
+## Validation
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```bash
+npm test
+npx tsc --noEmit
+npm run lint
+npm run build
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Scoring
 
-## Deploy on Vercel
+- Exact score: 5 points
+- Single result: 3 points
+- Double chance: 1 point
+- Correct knockout advancing team: 1 point
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Predictions lock at kickoff. Users may reset predictions for a match until kickoff.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Admin Flow
+
+Admins can:
+
+- Sync fixtures and teams from football-data.org
+- Override final scores
+- Select the advancing team for knockout matches
+- Recalculate all finished-match points
+- Remove non-admin users
+
+Sync updates mutable fixture fields such as team names, crests, stage, group, kickoff, status, and scores.
+
+## Deployment
+
+The Docker image runs Prisma migrations, attempts a fixture/team sync, then starts the standalone Next.js server.
+
+```bash
+docker compose up -d --build
+```
+
+The Compose file stores SQLite data in the `scoreprophet_data` volume at `/data/scoreprophet.db`.

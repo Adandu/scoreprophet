@@ -28,7 +28,8 @@ export async function savePrediction(prevState: unknown, formData: FormData) {
     where: { userId: session.userId, matchId },
   })
 
-  const validationError = validatePredictionCombination(type, existing)
+  const existingOtherTypes = existing.filter((p) => p.type !== type)
+  const validationError = validatePredictionCombination(type, existingOtherTypes)
   if (validationError) return { error: validationError }
 
   await prisma.prediction.upsert({
@@ -68,6 +69,7 @@ export async function saveKnockoutAdvance(prevState: unknown, formData: FormData
   if (!match) return { error: 'Match not found' }
   if (match.stage === 'GROUP') return { error: 'Advance prediction only for knockout rounds' }
   if (match.kickoff <= new Date()) return { error: 'Predictions are locked for this match' }
+  if (![match.homeTeam, match.awayTeam].includes(predictedTeam)) return { error: 'Choose one of the teams in this match' }
 
   await prisma.knockoutAdvance.upsert({
     where: { userId_matchId: { userId: session.userId!, matchId } },

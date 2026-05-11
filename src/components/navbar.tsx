@@ -17,6 +17,7 @@ export async function Navbar() {
           <Link href="/" className="hover:text-white transition-colors">Home</Link>
           <Link href="/predictions" className="hover:text-white transition-colors">Predictions</Link>
           <Link href="/results" className="hover:text-white transition-colors">Results</Link>
+          <Link href="/tournament" className="hover:text-white transition-colors">Tournament</Link>
           <Link href="/leaderboard" className="hover:text-white transition-colors">Leaderboard</Link>
           <Link href="/teams" className="hover:text-white transition-colors">Teams</Link>
           {user?.isAdmin && (

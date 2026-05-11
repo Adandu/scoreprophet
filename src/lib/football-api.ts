@@ -11,6 +11,7 @@ export interface NormalizedMatch {
   homeTeamCrest: string
   awayTeamCrest: string
   stage: Stage
+  group: string | null
   kickoff: Date
   status: MatchStatus
   homeScore: number | null
@@ -58,6 +59,7 @@ function normalizeMatch(m: any): NormalizedMatch {
     homeTeamCrest: m.homeTeam?.crest ?? '',
     awayTeamCrest: m.awayTeam?.crest ?? '',
     stage: STAGE_MAP[m.stage] ?? 'GROUP',
+    group: m.group ?? null,
     kickoff: new Date(m.utcDate),
     status: STATUS_MAP[m.status] ?? 'SCHEDULED',
     homeScore: m.score?.fullTime?.home ?? null,

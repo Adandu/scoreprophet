@@ -25,6 +25,7 @@ model Match {
   homeTeamCrest String            @default("")
   awayTeamCrest String            @default("")
   stage         Stage
+  group         String?
   kickoff       DateTime
   status        MatchStatus       @default(SCHEDULED)
   homeScore     Int?

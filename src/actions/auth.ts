@@ -12,9 +12,12 @@ export async function register(prevState: unknown, formData: FormData) {
   if (!password || password.length < 6) return { error: 'Password must be at least 6 characters' }
   const existing = await prisma.user.findUnique({ where: { username } })
   if (existing) return { error: 'Username already taken' }
-  const isAdmin = username === process.env.ADMIN_USERNAME
+  const isConfiguredAdmin =
+    username === process.env.ADMIN_USERNAME &&
+    !!process.env.ADMIN_PASSWORD &&
+    password === process.env.ADMIN_PASSWORD
   const passwordHash = await hashPassword(password)
-  const user = await prisma.user.create({ data: { username, passwordHash, isAdmin } })
+  const user = await prisma.user.create({ data: { username, passwordHash, isAdmin: isConfiguredAdmin } })
   const session = await getSession()
   session.userId = user.id
   session.username = user.username
@@ -31,15 +34,10 @@ export async function login(prevState: unknown, formData: FormData) {
   if (!user) return { error: 'Invalid username or password' }
   const valid = await verifyPassword(password, user.passwordHash)
   if (!valid) return { error: 'Invalid username or password' }
-  let isAdmin = user.isAdmin
-  if (!isAdmin && process.env.ADMIN_PASSWORD && password === process.env.ADMIN_PASSWORD) {
-    isAdmin = true
-    await prisma.user.update({ where: { id: user.id }, data: { isAdmin: true } })
-  }
   const session = await getSession()
   session.userId = user.id
   session.username = user.username
-  session.isAdmin = isAdmin
+  session.isAdmin = user.isAdmin
   session.timezone = user.timezone
   await session.save()
   redirect('/')

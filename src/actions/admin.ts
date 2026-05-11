@@ -14,6 +14,14 @@ export async function overrideMatchScore(prevState: unknown, formData: FormData)
   const winnerTeam = (formData.get('winnerTeam') as string)?.trim() || null
 
   if (isNaN(homeScore) || isNaN(awayScore)) return { error: 'Invalid scores' }
+  if (homeScore < 0 || awayScore < 0 || homeScore > 20 || awayScore > 20) return { error: 'Scores must be between 0 and 20' }
+
+  const match = await prisma.match.findUnique({ where: { id: matchId } })
+  if (!match) return { error: 'Match not found' }
+  if (match.stage !== 'GROUP') {
+    if (!winnerTeam) return { error: 'Advancing team is required for knockout matches' }
+    if (![match.homeTeam, match.awayTeam].includes(winnerTeam)) return { error: 'Advancing team must match one of the teams in this match' }
+  }
 
   await prisma.match.update({
     where: { id: matchId },
@@ -60,8 +68,13 @@ async function recalculateMatchPoints(matchId: number) {
 }
 
 export async function removeUser(prevState: unknown, formData: FormData) {
-  await requireAdmin()
+  const session = await requireAdmin()
   const userId = parseInt(formData.get('userId') as string, 10)
+  if (!userId) return { error: 'Missing user ID' }
+  if (userId === session.userId) return { error: 'You cannot remove your own account' }
+  const user = await prisma.user.findUnique({ where: { id: userId } })
+  if (!user) return { error: 'User not found' }
+  if (user.isAdmin) return { error: 'Admin users cannot be removed here' }
   await prisma.user.delete({ where: { id: userId } })
   revalidatePath('/admin')
   return { success: true }
@@ -77,7 +90,18 @@ export async function syncMatchesFromApi(prevState: unknown) {
     for (const m of matches) {
       await prisma.match.upsert({
         where: { externalId: m.externalId },
-        update: { status: m.status, homeScore: m.homeScore, awayScore: m.awayScore },
+        update: {
+          homeTeam: m.homeTeam,
+          awayTeam: m.awayTeam,
+          homeTeamCrest: m.homeTeamCrest,
+          awayTeamCrest: m.awayTeamCrest,
+          stage: m.stage,
+          group: m.group,
+          kickoff: m.kickoff,
+          status: m.status,
+          homeScore: m.homeScore,
+          awayScore: m.awayScore,
+        },
         create: {
           externalId: m.externalId,
           homeTeam: m.homeTeam,
@@ -85,6 +109,7 @@ export async function syncMatchesFromApi(prevState: unknown) {
           homeTeamCrest: m.homeTeamCrest,
           awayTeamCrest: m.awayTeamCrest,
           stage: m.stage,
+          group: m.group,
           kickoff: m.kickoff,
           status: m.status,
           homeScore: m.homeScore,

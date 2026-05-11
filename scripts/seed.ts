@@ -22,8 +22,31 @@ async function main() {
   for (const m of matches) {
     await prisma.match.upsert({
       where: { externalId: m.externalId },
-      update: { status: m.status, homeScore: m.homeScore, awayScore: m.awayScore, homeTeamCrest: m.homeTeamCrest, awayTeamCrest: m.awayTeamCrest },
-      create: { externalId: m.externalId, homeTeam: m.homeTeam, awayTeam: m.awayTeam, homeTeamCrest: m.homeTeamCrest, awayTeamCrest: m.awayTeamCrest, stage: m.stage, kickoff: m.kickoff, status: m.status, homeScore: m.homeScore, awayScore: m.awayScore },
+      update: {
+        homeTeam: m.homeTeam,
+        awayTeam: m.awayTeam,
+        homeTeamCrest: m.homeTeamCrest,
+        awayTeamCrest: m.awayTeamCrest,
+        stage: m.stage,
+        group: m.group,
+        kickoff: m.kickoff,
+        status: m.status,
+        homeScore: m.homeScore,
+        awayScore: m.awayScore,
+      },
+      create: {
+        externalId: m.externalId,
+        homeTeam: m.homeTeam,
+        awayTeam: m.awayTeam,
+        homeTeamCrest: m.homeTeamCrest,
+        awayTeamCrest: m.awayTeamCrest,
+        stage: m.stage,
+        group: m.group,
+        kickoff: m.kickoff,
+        status: m.status,
+        homeScore: m.homeScore,
+        awayScore: m.awayScore,
+      },
     })
   }
   console.log(`[seed] Synced ${matches.length} matches.`)

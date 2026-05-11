@@ -22,6 +22,7 @@ export default async function AdminPage() {
         status: m.status,
         homeScore: m.homeScore,
         awayScore: m.awayScore,
+        winnerTeam: m.winnerTeam,
         stage: m.stage,
         adminOverride: m.adminOverride,
       }))}
