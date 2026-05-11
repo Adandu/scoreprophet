@@ -27,6 +27,7 @@ export async function overrideMatchScore(prevState: unknown, formData: FormData)
   return { success: true }
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export async function recalculateAllPoints(prevState: unknown) {
   await requireAdmin()
   const matches = await prisma.match.findMany({ where: { status: 'FINISHED' } })
@@ -66,6 +67,7 @@ export async function removeUser(prevState: unknown, formData: FormData) {
   return { success: true }
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export async function syncMatchesFromApi(prevState: unknown) {
   await requireAdmin()
   const { fetchAllMatches } = await import('@/lib/football-api')
