@@ -4,7 +4,7 @@ import { prisma } from '@/lib/db'
 import { hashPassword, verifyPassword } from '@/lib/auth'
 import { getSession } from '@/lib/session'
 
-export async function register(formData: FormData) {
+export async function register(prevState: unknown, formData: FormData) {
   const username = (formData.get('username') as string)?.trim()
   const password = formData.get('password') as string
   if (!username || username.length < 2 || username.length > 30) return { error: 'Username must be 2–30 characters' }
@@ -22,7 +22,7 @@ export async function register(formData: FormData) {
   redirect('/')
 }
 
-export async function login(formData: FormData) {
+export async function login(prevState: unknown, formData: FormData) {
   const username = (formData.get('username') as string)?.trim()
   const password = formData.get('password') as string
   const user = await prisma.user.findUnique({ where: { username } })
