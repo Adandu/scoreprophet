@@ -41,7 +41,7 @@ export function KnockoutBracket({ matches, timezone }: { matches: BracketMatch[]
     <div className="space-y-6">
       <p className="text-xs text-white/35 md:hidden">Scroll sideways to view the full bracket</p>
       <div className="overflow-x-auto rounded-xl border border-white/10 bg-white/5 p-4">
-        <div className="flex min-w-[1180px] items-center justify-center gap-4">
+        <div className="flex min-w-[1180px] items-center justify-start gap-4">
           {MAIN_ROUNDS.map((stage) => (
             <RoundColumn key={`left-${stage}`} title={ROUND_LABELS[stage]} matches={leftHalf(byStage[stage])} timezone={timezone} />
           ))}

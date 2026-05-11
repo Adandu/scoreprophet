@@ -2,6 +2,8 @@
 
 ScoreProphet is a private World Cup 2026 prediction app. Players predict match outcomes, exact scores, and knockout advancing teams; admins sync fixtures from football-data.org, enter or override results, and recalculate points.
 
+Players compete inside admin-managed championships. A user can belong to multiple championships, and one prediction set counts in every championship where that user is a member.
+
 ## Stack
 
 - Next.js App Router
@@ -54,10 +56,14 @@ npm run build
 
 Predictions lock at kickoff. Users may reset predictions for a match until kickoff.
 
+Prediction, Results, and Leaderboard pages are championship-scoped. Users without an active championship membership only see Home, Tournament, and Teams.
+
 ## Admin Flow
 
 Admins can:
 
+- Create and manage championships
+- Assign users to championships
 - Sync fixtures and teams from football-data.org
 - Override final scores
 - Select the advancing team for knockout matches

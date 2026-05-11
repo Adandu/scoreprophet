@@ -6,9 +6,13 @@ export default async function AdminPage() {
   const session = await requireAdmin()
   const timezone = session.timezone ?? 'Europe/Bucharest'
 
-  const [matches, users] = await Promise.all([
+  const [matches, users, championships] = await Promise.all([
     prisma.match.findMany({ orderBy: { kickoff: 'asc' } }),
     prisma.user.findMany({ orderBy: { username: 'asc' } }),
+    prisma.championship.findMany({
+      orderBy: { name: 'asc' },
+      include: { members: true },
+    }),
   ])
 
   return (
@@ -27,6 +31,13 @@ export default async function AdminPage() {
         adminOverride: m.adminOverride,
       }))}
       users={users.map((u) => ({ id: u.id, username: u.username, isAdmin: u.isAdmin }))}
+      championships={championships.map((championship) => ({
+        id: championship.id,
+        name: championship.name,
+        description: championship.description,
+        isActive: championship.isActive,
+        userIds: championship.members.map((member) => member.userId),
+      }))}
     />
   )
 }

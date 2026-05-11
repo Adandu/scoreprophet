@@ -2,6 +2,7 @@
 
 import { useActionState } from 'react'
 import { overrideMatchScore, recalculateAllPoints, removeUser, syncMatchesFromApi } from '@/actions/admin'
+import { createChampionship, deleteChampionship, setChampionshipMembers, updateChampionship } from '@/actions/championships'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
@@ -35,9 +36,28 @@ interface User {
   isAdmin: boolean
 }
 
-export function AdminClient({ matches, users, timezone }: { matches: Match[]; users: User[]; timezone: string }) {
+interface Championship {
+  id: number
+  name: string
+  description: string
+  isActive: boolean
+  userIds: number[]
+}
+
+export function AdminClient({
+  matches,
+  users,
+  championships,
+  timezone,
+}: {
+  matches: Match[]
+  users: User[]
+  championships: Championship[]
+  timezone: string
+}) {
   const [syncState, syncAction, syncPending] = useActionState(syncMatchesFromApi, null)
   const [recalcState, recalcAction, recalcPending] = useActionState(recalculateAllPoints, null)
+  const [createState, createAction, createPending] = useActionState(createChampionship, null)
 
   return (
     <div className="space-y-10">
@@ -58,6 +78,35 @@ export function AdminClient({ matches, users, timezone }: { matches: Match[]; us
         {syncState?.error && <p className="text-sm text-red-400 self-center">{syncState.error}</p>}
         {syncState?.success && <p className="text-sm text-green-400 self-center">Synced {(syncState as { synced: number }).synced} matches</p>}
         {recalcState?.success && <p className="text-sm text-green-400 self-center">Recalculated {(recalcState as { count: number }).count} matches</p>}
+      </section>
+
+      <section>
+        <h2 className="mb-3 text-lg font-semibold text-[#C9A84C]">Championships</h2>
+        <form action={createAction} className="mb-4 flex flex-wrap items-end gap-3 rounded-lg border border-white/10 bg-white/5 p-4">
+          <div>
+            <label className="mb-1 block text-xs text-white/40" htmlFor="championship-name">Name</label>
+            <Input id="championship-name" name="name" className="w-56 bg-white/10 text-white border-white/20" />
+          </div>
+          <div className="flex-1 min-w-56">
+            <label className="mb-1 block text-xs text-white/40" htmlFor="championship-description">Description</label>
+            <Input id="championship-description" name="description" className="bg-white/10 text-white border-white/20" />
+          </div>
+          <Button type="submit" disabled={createPending} className="bg-[#C9A84C] text-[#0A1628] hover:bg-[#C9A84C]/90 font-semibold">
+            {createPending ? 'Creating…' : 'Create'}
+          </Button>
+          {createState?.error && <p className="text-xs text-red-400">{createState.error}</p>}
+          {createState?.success && <p className="text-xs text-green-400">Created</p>}
+        </form>
+        <div className="space-y-3">
+          {championships.map((championship) => (
+            <ChampionshipRow key={championship.id} championship={championship} users={users} />
+          ))}
+          {championships.length === 0 && (
+            <div className="rounded-lg border border-white/10 bg-white/5 p-4 text-sm text-white/40">
+              No championships yet.
+            </div>
+          )}
+        </div>
       </section>
 
       {/* Override Scores */}
@@ -90,6 +139,71 @@ export function AdminClient({ matches, users, timezone }: { matches: Match[]; us
           </table>
         </div>
       </section>
+    </div>
+  )
+}
+
+function ChampionshipRow({ championship, users }: { championship: Championship; users: User[] }) {
+  const [updateState, updateAction, updatePending] = useActionState(updateChampionship, null)
+  const [membersState, membersAction, membersPending] = useActionState(setChampionshipMembers, null)
+  const [deleteState, deleteAction, deletePending] = useActionState(deleteChampionship, null)
+
+  return (
+    <div className="rounded-lg border border-white/10 bg-white/5 p-4">
+      <form action={updateAction} className="mb-4 flex flex-wrap items-end gap-3">
+        <input type="hidden" name="championshipId" value={championship.id} />
+        <div>
+          <label className="mb-1 block text-xs text-white/40">Name</label>
+          <Input name="name" defaultValue={championship.name} className="w-56 bg-white/10 text-white border-white/20" />
+        </div>
+        <div className="flex-1 min-w-56">
+          <label className="mb-1 block text-xs text-white/40">Description</label>
+          <Input name="description" defaultValue={championship.description} className="bg-white/10 text-white border-white/20" />
+        </div>
+        <label className="flex h-9 items-center gap-2 text-sm text-white/70">
+          <input type="checkbox" name="isActive" defaultChecked={championship.isActive} className="h-4 w-4 accent-[#C9A84C]" />
+          Active
+        </label>
+        <Button type="submit" size="sm" disabled={updatePending} className="bg-[#C9A84C] text-[#0A1628] hover:bg-[#C9A84C]/90">
+          {updatePending ? 'Saving…' : 'Save'}
+        </Button>
+        {updateState?.error && <span className="text-xs text-red-400">{updateState.error}</span>}
+        {updateState?.success && <span className="text-xs text-green-400">Saved</span>}
+      </form>
+
+      <form action={membersAction} className="space-y-3">
+        <input type="hidden" name="championshipId" value={championship.id} />
+        <div className="grid gap-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+          {users.map((user) => (
+            <label key={user.id} className="flex items-center gap-2 rounded-md border border-white/10 bg-[#0A1628]/40 px-3 py-2 text-sm text-white/75">
+              <input
+                type="checkbox"
+                name="userIds"
+                value={user.id}
+                defaultChecked={championship.userIds.includes(user.id)}
+                className="h-4 w-4 accent-[#C9A84C]"
+              />
+              {user.username}
+              {user.isAdmin && <span className="text-xs text-[#C9A84C]">Admin</span>}
+            </label>
+          ))}
+        </div>
+        <div className="flex flex-wrap items-center gap-3">
+          <Button type="submit" size="sm" variant="outline" disabled={membersPending} className="border-white/20 text-white hover:bg-white/10 bg-transparent">
+            {membersPending ? 'Saving members…' : 'Save members'}
+          </Button>
+          {membersState?.error && <span className="text-xs text-red-400">{membersState.error}</span>}
+          {membersState?.success && <span className="text-xs text-green-400">Members saved</span>}
+        </div>
+      </form>
+
+      <form action={deleteAction} className="mt-3">
+        <input type="hidden" name="championshipId" value={championship.id} />
+        <Button type="submit" size="sm" variant="outline" disabled={deletePending} className="border-red-500/30 text-red-400 hover:bg-red-500/10 bg-transparent text-xs">
+          {deletePending ? 'Deleting…' : 'Delete championship'}
+        </Button>
+        {deleteState?.error && <span className="ml-2 text-xs text-red-400">{deleteState.error}</span>}
+      </form>
     </div>
   )
 }

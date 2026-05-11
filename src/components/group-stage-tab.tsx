@@ -38,10 +38,10 @@ export function GroupStageTab({ matches }: { matches: GroupMatch[] }) {
             {GROUP_LABELS[group] ?? group.replace('_', ' ')}
           </h2>
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[330px] text-xs">
+            <table className="w-full table-fixed text-[11px]">
               <thead>
                 <tr className="border-b border-white/10 text-white/40">
-                  <th className="py-2 pr-2 text-left font-normal">Team</th>
+                  <th className="w-[42%] py-2 pr-2 text-left font-normal">Team</th>
                   <th className="px-1 text-right font-normal">P</th>
                   <th className="px-1 text-right font-normal">W</th>
                   <th className="px-1 text-right font-normal">D</th>
@@ -60,7 +60,7 @@ export function GroupStageTab({ matches }: { matches: GroupMatch[] }) {
                         <span className="flex h-5 w-5 items-center justify-center">
                           {row.crest ? <Image src={row.crest} alt="" width={20} height={20} className="max-h-5 object-contain" /> : <span className="h-4 w-4 rounded bg-white/10" />}
                         </span>
-                        <span className="truncate">{row.team}</span>
+                        <span className="truncate text-[10px] sm:text-[11px]">{row.team}</span>
                       </div>
                     </td>
                     <td className="px-1 text-right tabular-nums">{row.played}</td>

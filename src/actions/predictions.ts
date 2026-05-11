@@ -3,12 +3,14 @@
 import { revalidatePath } from 'next/cache'
 import { prisma } from '@/lib/db'
 import { requireAuth } from '@/lib/auth'
+import { userHasActiveChampionship } from '@/lib/championships'
 import { validatePredictionCombination, parseExactScore } from '@/lib/validation'
 
 type PredictionType = 'SINGLE_OUTCOME' | 'DOUBLE_CHANCE' | 'EXACT_SCORE'
 
 export async function savePrediction(prevState: unknown, formData: FormData) {
   const session = await requireAuth()
+  if (!(await userHasActiveChampionship(session.userId!))) return { error: 'You are not assigned to an active championship' }
   const matchId = parseInt(formData.get('matchId') as string, 10)
   const type = formData.get('type') as PredictionType
   const value = (formData.get('value') as string)?.trim()
@@ -44,6 +46,7 @@ export async function savePrediction(prevState: unknown, formData: FormData) {
 
 export async function deletePrediction(prevState: unknown, formData: FormData) {
   const session = await requireAuth()
+  if (!(await userHasActiveChampionship(session.userId!))) return { error: 'You are not assigned to an active championship' }
   const predictionId = parseInt(formData.get('predictionId') as string, 10)
 
   const prediction = await prisma.prediction.findUnique({
@@ -60,6 +63,7 @@ export async function deletePrediction(prevState: unknown, formData: FormData) {
 
 export async function saveKnockoutAdvance(prevState: unknown, formData: FormData) {
   const session = await requireAuth()
+  if (!(await userHasActiveChampionship(session.userId!))) return { error: 'You are not assigned to an active championship' }
   const matchId = parseInt(formData.get('matchId') as string, 10)
   const predictedTeam = (formData.get('predictedTeam') as string)?.trim()
 
@@ -83,6 +87,7 @@ export async function saveKnockoutAdvance(prevState: unknown, formData: FormData
 
 export async function resetMatchPredictions(prevState: unknown, formData: FormData) {
   const session = await requireAuth()
+  if (!(await userHasActiveChampionship(session.userId!))) return { error: 'You are not assigned to an active championship' }
   const matchId = parseInt(formData.get('matchId') as string, 10)
   if (!matchId) return { error: 'Missing match ID' }
 
