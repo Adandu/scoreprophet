@@ -1,0 +1,17 @@
+services:
+  scoreprophet:
+    build: .
+    ports:
+      - "3000:3000"
+    volumes:
+      - scoreprophet_data:/data
+    environment:
+      - DATABASE_URL=file:/data/scoreprophet.db
+      - FOOTBALL_API_KEY=${FOOTBALL_API_KEY}
+      - ADMIN_USERNAME=${ADMIN_USERNAME}
+      - ADMIN_PASSWORD=${ADMIN_PASSWORD}
+      - SESSION_SECRET=${SESSION_SECRET}
+    restart: unless-stopped
+
+volumes:
+  scoreprophet_data:
