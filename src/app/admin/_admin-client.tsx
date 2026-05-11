@@ -34,7 +34,7 @@ interface User {
   isAdmin: boolean
 }
 
-export function AdminClient({ matches, users }: { matches: Match[]; users: User[] }) {
+export function AdminClient({ matches, users, timezone }: { matches: Match[]; users: User[]; timezone: string }) {
   const [syncState, syncAction, syncPending] = useActionState(syncMatchesFromApi, null)
   const [recalcState, recalcAction, recalcPending] = useActionState(recalculateAllPoints, null)
 
@@ -64,7 +64,7 @@ export function AdminClient({ matches, users }: { matches: Match[]; users: User[
         <h2 className="mb-3 text-lg font-semibold text-[#C9A84C]">Override Match Score</h2>
         <div className="space-y-3">
           {matches.map((match) => (
-            <MatchOverrideRow key={match.id} match={match} />
+            <MatchOverrideRow key={match.id} match={match} timezone={timezone} />
           ))}
         </div>
       </section>
@@ -93,7 +93,7 @@ export function AdminClient({ matches, users }: { matches: Match[]; users: User[
   )
 }
 
-function MatchOverrideRow({ match }: { match: Match }) {
+function MatchOverrideRow({ match, timezone }: { match: Match; timezone: string }) {
   const [state, formAction, pending] = useActionState(overrideMatchScore, null)
 
   return (
@@ -102,7 +102,7 @@ function MatchOverrideRow({ match }: { match: Match }) {
       <span className="text-sm text-white flex-1 min-w-0">
         <span className="text-white/30 text-xs mr-2">{STAGE_LABELS[match.stage] ?? match.stage}</span>
         {match.homeTeam} vs {match.awayTeam}
-        <span className="ml-2 text-white/30 text-xs">{new Date(match.kickoff).toLocaleDateString()}</span>
+        <span className="ml-2 text-white/30 text-xs">{new Intl.DateTimeFormat('en-GB', { timeZone: timezone, day: 'numeric', month: 'short', year: 'numeric' }).format(new Date(match.kickoff))}</span>
         {match.adminOverride && <Badge className="ml-2 bg-orange-600/20 text-orange-400 text-xs">overridden</Badge>}
       </span>
       <Input name="homeScore" type="number" min="0" max="20" defaultValue={match.homeScore ?? ''} placeholder="H" className="w-14 bg-white/10 text-white border-white/20 text-sm h-7 text-center" />

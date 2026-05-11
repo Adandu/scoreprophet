@@ -3,7 +3,8 @@ import { requireAdmin } from '@/lib/auth'
 import { AdminClient } from './_admin-client'
 
 export default async function AdminPage() {
-  await requireAdmin()
+  const session = await requireAdmin()
+  const timezone = session.timezone ?? 'Europe/Bucharest'
 
   const [matches, users] = await Promise.all([
     prisma.match.findMany({ orderBy: { kickoff: 'asc' } }),
@@ -12,6 +13,7 @@ export default async function AdminPage() {
 
   return (
     <AdminClient
+      timezone={timezone}
       matches={matches.map((m) => ({
         id: m.id,
         homeTeam: m.homeTeam,
