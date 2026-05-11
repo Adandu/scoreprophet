@@ -1,6 +1,7 @@
 import { prisma } from '@/lib/db'
 import { requireAuth } from '@/lib/auth'
 import { Badge } from '@/components/ui/badge'
+import { formatMatchTime } from '@/lib/format-date'
 
 function pointsBadge(pts: number | null) {
   if (pts === null) return <span className="text-white/30">—</span>
@@ -9,7 +10,8 @@ function pointsBadge(pts: number | null) {
 }
 
 export default async function ResultsPage() {
-  await requireAuth()
+  const session = await requireAuth()
+  const timezone = session.timezone ?? 'Europe/Bucharest'
 
   const matches = await prisma.match.findMany({
     where: { status: 'FINISHED' },
@@ -34,7 +36,7 @@ export default async function ResultsPage() {
             <span className="font-semibold text-white">
               {match.homeTeam} {match.homeScore}–{match.awayScore} {match.awayTeam}
             </span>
-            <span className="text-xs text-white/40">{match.kickoff.toLocaleDateString()}</span>
+            <span className="text-xs text-white/40">{formatMatchTime(match.kickoff, timezone)}</span>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full text-sm">

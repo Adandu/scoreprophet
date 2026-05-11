@@ -3,6 +3,7 @@
 import { useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
+import { formatMatchTime } from '@/lib/format-date'
 
 interface Props {
   match: {
@@ -15,9 +16,10 @@ interface Props {
     status: string
     kickoff: string
   }
+  timezone: string
 }
 
-export function LiveMatchCard({ match }: Props) {
+export function LiveMatchCard({ match, timezone }: Props) {
   const router = useRouter()
 
   useEffect(() => {
@@ -27,7 +29,6 @@ export function LiveMatchCard({ match }: Props) {
   }, [match.status, router])
 
   const isLive = match.status === 'LIVE'
-  const kickoffDate = new Date(match.kickoff)
 
   return (
     <div className="rounded-xl border border-white/10 bg-white/5 p-8">
@@ -39,7 +40,7 @@ export function LiveMatchCard({ match }: Props) {
       )}
       {!isLive && (
         <p className="mb-4 text-center text-sm text-white/50">
-          {match.status === 'FINISHED' ? 'Final Score' : `Kickoff: ${kickoffDate.toLocaleString()}`}
+          {match.status === 'FINISHED' ? 'Final Score' : `Kickoff: ${formatMatchTime(match.kickoff, timezone)}`}
         </p>
       )}
       <div className="flex items-center justify-center gap-8">

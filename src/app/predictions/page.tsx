@@ -2,11 +2,13 @@ import { prisma } from '@/lib/db'
 import { requireAuth } from '@/lib/auth'
 import { PredictionForm } from '@/components/prediction-form'
 import { Badge } from '@/components/ui/badge'
+import { formatMatchTime } from '@/lib/format-date'
 
-type Stage = 'GROUP' | 'ROUND_OF_16' | 'QUARTER_FINAL' | 'SEMI_FINAL' | 'THIRD_PLACE' | 'FINAL'
+type Stage = 'GROUP' | 'ROUND_OF_32' | 'ROUND_OF_16' | 'QUARTER_FINAL' | 'SEMI_FINAL' | 'THIRD_PLACE' | 'FINAL'
 
 const STAGE_LABELS: Record<Stage, string> = {
   GROUP: 'Group Stage',
+  ROUND_OF_32: 'Round of 32',
   ROUND_OF_16: 'Round of 16',
   QUARTER_FINAL: 'Quarter-Finals',
   SEMI_FINAL: 'Semi-Finals',
@@ -14,10 +16,11 @@ const STAGE_LABELS: Record<Stage, string> = {
   FINAL: 'Final',
 }
 
-const STAGE_ORDER: Stage[] = ['GROUP', 'ROUND_OF_16', 'QUARTER_FINAL', 'SEMI_FINAL', 'THIRD_PLACE', 'FINAL']
+const STAGE_ORDER: Stage[] = ['GROUP', 'ROUND_OF_32', 'ROUND_OF_16', 'QUARTER_FINAL', 'SEMI_FINAL', 'THIRD_PLACE', 'FINAL']
 
 export default async function PredictionsPage() {
   const session = await requireAuth()
+  const timezone = session.timezone ?? 'Europe/Bucharest'
 
   const matches = await prisma.match.findMany({
     where: { status: { not: 'FINISHED' } },
@@ -65,7 +68,7 @@ export default async function PredictionsPage() {
                 return (
                   <div key={match.id} className={`rounded-xl border p-4 ${locked ? 'border-white/5 bg-white/3 opacity-60' : 'border-white/10 bg-white/5'}`}>
                     <div className="flex items-center justify-between mb-2">
-                      <span className="text-xs text-white/40">{match.kickoff.toLocaleString()}</span>
+                      <span className="text-xs text-white/40">{formatMatchTime(match.kickoff, timezone)}</span>
                       {locked && <Badge variant="outline" className="text-xs border-white/20 text-white/40">🔒 Locked</Badge>}
                     </div>
                     <div className="flex items-center justify-between font-semibold text-white">

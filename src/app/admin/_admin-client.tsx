@@ -6,6 +6,16 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 
+const STAGE_LABELS: Record<string, string> = {
+  GROUP: 'Group Stage',
+  ROUND_OF_32: 'Round of 32',
+  ROUND_OF_16: 'Round of 16',
+  QUARTER_FINAL: 'Quarter-Finals',
+  SEMI_FINAL: 'Semi-Finals',
+  THIRD_PLACE: 'Third Place',
+  FINAL: 'Final',
+}
+
 interface Match {
   id: number
   homeTeam: string
@@ -90,6 +100,7 @@ function MatchOverrideRow({ match }: { match: Match }) {
     <form action={formAction} className="flex items-center gap-3 rounded-lg border border-white/10 bg-white/5 px-4 py-2 flex-wrap">
       <input type="hidden" name="matchId" value={match.id} />
       <span className="text-sm text-white flex-1 min-w-0">
+        <span className="text-white/30 text-xs mr-2">{STAGE_LABELS[match.stage] ?? match.stage}</span>
         {match.homeTeam} vs {match.awayTeam}
         <span className="ml-2 text-white/30 text-xs">{new Date(match.kickoff).toLocaleDateString()}</span>
         {match.adminOverride && <Badge className="ml-2 bg-orange-600/20 text-orange-400 text-xs">overridden</Badge>}
