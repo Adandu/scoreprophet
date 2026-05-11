@@ -1,7 +1,7 @@
 const BASE_URL = 'https://api.football-data.org/v4'
 const COMPETITION = 'WC'
 
-type Stage = 'GROUP' | 'ROUND_OF_16' | 'QUARTER_FINAL' | 'SEMI_FINAL' | 'THIRD_PLACE' | 'FINAL'
+type Stage = 'GROUP' | 'ROUND_OF_32' | 'ROUND_OF_16' | 'QUARTER_FINAL' | 'SEMI_FINAL' | 'THIRD_PLACE' | 'FINAL'
 type MatchStatus = 'SCHEDULED' | 'LIVE' | 'FINISHED'
 
 export interface NormalizedMatch {
@@ -26,6 +26,7 @@ export interface NormalizedTeam {
 
 const STAGE_MAP: Record<string, Stage> = {
   GROUP_STAGE: 'GROUP',
+  LAST_32: 'ROUND_OF_32',
   LAST_16: 'ROUND_OF_16',
   QUARTER_FINALS: 'QUARTER_FINAL',
   SEMI_FINALS: 'SEMI_FINAL',
