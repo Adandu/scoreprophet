@@ -5,6 +5,7 @@ import { getSelectedChampionship, getUserChampionships } from '@/lib/championshi
 import { Button } from '@/components/ui/button'
 import { TimezoneSelector } from '@/components/timezone-selector'
 import { ChampionshipSelector } from '@/components/championship-selector'
+import { MobileMenu } from '@/components/mobile-menu'
 
 export async function Navbar() {
   const user = await getCurrentUser()
@@ -12,12 +13,12 @@ export async function Navbar() {
   const selectedChampionship = user ? await getSelectedChampionship(user.userId) : null
 
   return (
-    <nav className="border-b border-white/10 bg-[#0A1628]/95 backdrop-blur sticky top-0 z-50">
+    <nav className="border-b border-white/10 bg-[#0A1628]/95 backdrop-blur sticky top-0 z-50 caret-transparent">
       <div className="mx-auto flex max-w-[90rem] items-center justify-between gap-4 px-4 py-3">
         <Link href="/" className="text-xl font-bold text-[#C9A84C] tracking-tight">
           ScoreProphet
         </Link>
-        <div className="flex items-center gap-4 text-sm text-white/70">
+        <div className="hidden items-center gap-4 text-sm text-white/70 lg:flex">
           <Link href="/" className="hover:text-white transition-colors">Home</Link>
           {selectedChampionship && (
             <>
@@ -32,7 +33,7 @@ export async function Navbar() {
             <Link href="/admin" className="text-[#C9A84C] hover:text-[#C9A84C]/80 transition-colors">Admin</Link>
           )}
         </div>
-        <div className="flex items-center gap-3">
+        <div className="hidden items-center gap-3 lg:flex">
           {user ? (
             <>
               <span className="text-sm text-white/50">{user.username}</span>
@@ -61,6 +62,7 @@ export async function Navbar() {
             </>
           )}
         </div>
+        <MobileMenu user={user} championships={championships} selectedChampionship={selectedChampionship} />
       </div>
     </nav>
   )

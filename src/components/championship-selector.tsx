@@ -38,7 +38,7 @@ export function ChampionshipSelector({
           else router.refresh()
         })
       }}
-      className="h-8 max-w-48 rounded-md border border-white/15 bg-[#0A1628] px-2 text-sm font-semibold text-[#C9A84C]"
+      className="h-8 max-w-48 cursor-pointer select-none rounded-md border border-white/15 bg-[#0A1628] px-2 text-sm font-semibold text-[#C9A84C] caret-transparent"
       aria-label="Select championship"
     >
       {championships.map((championship) => (

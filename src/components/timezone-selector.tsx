@@ -445,7 +445,7 @@ export function TimezoneSelector({ timezone }: { timezone: string }) {
         type="button"
         disabled={isPending}
         onClick={openDropdown}
-        className="max-w-[180px] truncate bg-[#0A1628] text-white/50 text-xs border border-white/20 rounded px-2 py-1 cursor-pointer hover:border-white/40 disabled:opacity-50 text-left"
+        className="max-w-[180px] truncate bg-[#0A1628] text-white/50 text-xs border border-white/20 rounded px-2 py-1 cursor-pointer hover:border-white/40 disabled:opacity-50 text-left caret-transparent"
       >
         {label}
       </button>
@@ -458,7 +458,7 @@ export function TimezoneSelector({ timezone }: { timezone: string }) {
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Search timezone…"
-              className="w-full bg-white/5 text-white text-xs rounded px-3 py-1.5 outline-none placeholder:text-white/30 border border-white/10 focus:border-white/30"
+              className="w-full bg-white/5 text-white text-xs rounded px-3 py-1.5 outline-none placeholder:text-white/30 border border-white/10 focus:border-white/30 caret-white"
             />
           </div>
           <div className="max-h-64 overflow-y-auto">
