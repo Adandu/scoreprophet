@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { logout } from '@/actions/auth'
 import { getCurrentUser } from '@/lib/auth'
 import { Button } from '@/components/ui/button'
+import { TimezoneSelector } from '@/components/timezone-selector'
 
 export async function Navbar() {
   const user = await getCurrentUser()
@@ -26,6 +27,7 @@ export async function Navbar() {
           {user ? (
             <>
               <span className="text-sm text-white/50">{user.username}</span>
+              <TimezoneSelector timezone={user.timezone} />
               <form action={logout}>
                 <Button type="submit" variant="outline" size="sm" className="border-white/20 text-white/70 hover:text-white bg-transparent">
                   Logout
