@@ -95,7 +95,9 @@ export function KnockoutBracket({ matches, timezone }: { matches: BracketMatch[]
 
   return (
     <div className="space-y-6">
-      <div className="rounded-xl border border-white/10 bg-white/5 p-3">
+      <MobileBracket displayMatches={displayMatches} final={final} thirdPlace={thirdPlace} timezone={timezone} />
+
+      <div className="hidden rounded-xl border border-white/10 bg-white/5 p-3 xl:block">
         <div className="flex w-full items-center justify-center gap-2">
           {MAIN_ROUNDS.map((stage) => (
             <RoundColumn key={`left-${stage}`} title={ROUND_LABELS[stage]} matches={leftHalf(byStage[stage])} timezone={timezone} />
@@ -122,6 +124,56 @@ export function KnockoutBracket({ matches, timezone }: { matches: BracketMatch[]
   )
 }
 
+function MobileBracket({
+  displayMatches,
+  final,
+  thirdPlace,
+  timezone,
+}: {
+  displayMatches: DisplayMatch[]
+  final: DisplayMatch | undefined
+  thirdPlace: DisplayMatch | undefined
+  timezone: string
+}) {
+  return (
+    <div className="space-y-4 xl:hidden">
+      <section className="rounded-xl border border-white/10 bg-white/5 p-4">
+        <div className="mb-4 flex items-center justify-center gap-4">
+          <Image src="/Word_Cup_Trophy.png" alt="World Cup Trophy" width={76} height={96} className="h-20 w-auto object-contain drop-shadow-lg" />
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-widest text-[#C9A84C]">World Cup 2026</p>
+            <h2 className="text-xl font-bold text-white">Knockout Bracket</h2>
+          </div>
+        </div>
+
+        <div className="grid gap-3 sm:grid-cols-2">
+          <div>
+            <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-white/45">Final</h3>
+            {final ? <MatchSlot match={final} timezone={timezone} roomy /> : <EmptySlot label="Final" roomy />}
+          </div>
+          <div>
+            <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-white/45">3rd Place</h3>
+            {thirdPlace ? <MatchSlot match={thirdPlace} timezone={timezone} roomy /> : <EmptySlot label="3rd Place" roomy />}
+          </div>
+        </div>
+      </section>
+
+      {[...MAIN_ROUNDS].reverse().map((stage) => {
+        const matches = displayMatches.filter((match) => match.stage === stage)
+
+        return (
+          <section key={stage} className="rounded-xl border border-white/10 bg-white/5 p-4">
+            <h3 className="mb-3 text-sm font-semibold uppercase tracking-wide text-[#C9A84C]">{ROUND_LABELS[stage]}</h3>
+            <div className="grid gap-3 sm:grid-cols-2">
+              {matches.length > 0 ? matches.map((match) => <MatchSlot key={match.id} match={match} timezone={timezone} roomy />) : <EmptySlot label={ROUND_LABELS[stage]} roomy />}
+            </div>
+          </section>
+        )
+      })}
+    </div>
+  )
+}
+
 function RoundColumn({ title, matches, timezone }: { title: string; matches: DisplayMatch[]; timezone: string }) {
   return (
     <section className="flex min-w-0 flex-1 flex-col gap-2">
@@ -133,15 +185,15 @@ function RoundColumn({ title, matches, timezone }: { title: string; matches: Dis
   )
 }
 
-function MatchSlot({ match, timezone, compact = false }: { match: DisplayMatch; timezone: string; compact?: boolean }) {
+function MatchSlot({ match, timezone, compact = false, roomy = false }: { match: DisplayMatch; timezone: string; compact?: boolean; roomy?: boolean }) {
   const homeWon = match.status === 'FINISHED' && match.winnerTeam === match.homeTeam
   const awayWon = match.status === 'FINISHED' && match.winnerTeam === match.awayTeam
 
   return (
-    <div className={`w-full rounded-md border border-white/10 bg-[#0A1628]/80 p-1.5 ${compact ? 'max-w-[132px]' : ''}`}>
-      <TeamLine team={match.homeTeam} score={match.homeScore} winner={homeWon} />
-      <TeamLine team={match.awayTeam} score={match.awayScore} winner={awayWon} />
-      <div className="mt-1.5 flex items-center justify-between gap-1 border-t border-white/10 pt-1.5 text-[9px] text-white/35">
+    <div className={`w-full rounded-md border border-white/10 bg-[#0A1628]/80 ${roomy ? 'p-3' : 'p-1.5'} ${compact ? 'max-w-[132px]' : ''}`}>
+      <TeamLine team={match.homeTeam} score={match.homeScore} winner={homeWon} roomy={roomy} />
+      <TeamLine team={match.awayTeam} score={match.awayScore} winner={awayWon} roomy={roomy} />
+      <div className={`mt-1.5 flex items-center justify-between gap-1 border-t border-white/10 pt-1.5 text-white/35 ${roomy ? 'text-[11px]' : 'text-[9px]'}`}>
         <span>{match.kickoff ? formatMatchTime(match.kickoff, timezone) : `M${match.matchNo}`}</span>
         {match.status === 'LIVE' && <span className="h-2 w-2 animate-pulse rounded-full bg-green-400" />}
       </div>
@@ -149,19 +201,19 @@ function MatchSlot({ match, timezone, compact = false }: { match: DisplayMatch; 
   )
 }
 
-function TeamLine({ team, score, winner }: { team: string; score: number | null; winner: boolean }) {
+function TeamLine({ team, score, winner, roomy = false }: { team: string; score: number | null; winner: boolean; roomy?: boolean }) {
   const pending = /^[WL]?\d|^3[A-L]/.test(team)
   return (
-    <div className={`flex items-center justify-between gap-1 py-0.5 text-[10px] ${winner ? 'font-bold text-[#C9A84C]' : pending ? 'text-white/35' : 'text-white/80'}`}>
+    <div className={`flex items-center justify-between gap-2 py-0.5 ${roomy ? 'min-h-7 text-sm' : 'text-[10px]'} ${winner ? 'font-bold text-[#C9A84C]' : pending ? 'text-white/35' : 'text-white/80'}`}>
       <span className="truncate">{team}</span>
-      <span className="tabular-nums">{score ?? ''}</span>
+      <span className="shrink-0 tabular-nums">{score ?? ''}</span>
     </div>
   )
 }
 
-function EmptySlot({ label }: { label: string }) {
+function EmptySlot({ label, roomy = false }: { label: string; roomy?: boolean }) {
   return (
-    <div className="w-full rounded-md border border-dashed border-white/10 bg-white/[0.03] p-2 text-center text-[10px] text-white/25">
+    <div className={`w-full rounded-md border border-dashed border-white/10 bg-white/[0.03] text-center text-white/25 ${roomy ? 'p-4 text-sm' : 'p-2 text-[10px]'}`}>
       {label}
     </div>
   )
