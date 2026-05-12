@@ -104,7 +104,7 @@ export function KnockoutBracket({ matches, timezone }: { matches: BracketMatch[]
           ))}
 
           <div className="flex min-w-[136px] flex-col items-center justify-center gap-2 px-1">
-            <Image src="/Word_Cup_Trophy.png" alt="World Cup Trophy" width={88} height={110} className="h-24 w-auto object-contain drop-shadow-lg" />
+            <Image src="/World_Cup_Trophy.png" alt="World Cup Trophy" width={88} height={110} className="h-24 w-auto object-contain drop-shadow-lg" />
             <p className="text-xs font-semibold uppercase tracking-widest text-[#C9A84C]">World Cup 2026</p>
             {final ? <MatchSlot match={final} timezone={timezone} compact /> : <EmptySlot label="Final" />}
             {thirdPlace && (
@@ -152,7 +152,7 @@ function MobileBracket({
 
       <section className="rounded-xl border border-white/10 bg-white/5 p-4">
         <div className="mb-4 flex items-center justify-center gap-4">
-          <Image src="/Word_Cup_Trophy.png" alt="World Cup Trophy" width={76} height={96} className="h-20 w-auto object-contain drop-shadow-lg" />
+          <Image src="/World_Cup_Trophy.png" alt="World Cup Trophy" width={76} height={96} className="h-20 w-auto object-contain drop-shadow-lg" />
           <div>
             <p className="text-xs font-semibold uppercase tracking-widest text-[#C9A84C]">World Cup 2026</p>
             <h2 className="text-xl font-bold text-white">Finals</h2>
