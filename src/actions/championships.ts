@@ -34,12 +34,16 @@ export async function updateChampionship(prevState: unknown, formData: FormData)
   const name = (formData.get('name') as string)?.trim()
   const description = ((formData.get('description') as string) ?? '').trim()
   const isActive = formData.get('isActive') === 'on'
+  const doubleChanceEnabled = formData.get('doubleChanceEnabled') === 'on'
 
   if (!championshipId) return { error: 'Missing championship ID' }
   if (!name || name.length < 2 || name.length > 60) return { error: 'Championship name must be 2-60 characters' }
 
   try {
-    await prisma.championship.update({ where: { id: championshipId }, data: { name, description, isActive } })
+    await prisma.championship.update({
+      where: { id: championshipId },
+      data: { name, description, isActive, doubleChanceEnabled },
+    })
   } catch {
     return { error: 'Could not update championship' }
   }
@@ -47,6 +51,7 @@ export async function updateChampionship(prevState: unknown, formData: FormData)
   revalidatePath('/admin')
   revalidatePath('/', 'layout')
   revalidatePath(`/championships/${championshipId}/leaderboard`)
+  revalidatePath(`/championships/${championshipId}/predictions`)
   return { success: true }
 }
 
