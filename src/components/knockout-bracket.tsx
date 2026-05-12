@@ -137,12 +137,25 @@ function MobileBracket({
 }) {
   return (
     <div className="space-y-4 xl:hidden">
+      {MAIN_ROUNDS.map((stage) => {
+        const matches = displayMatches.filter((match) => match.stage === stage)
+
+        return (
+          <section key={stage} className="rounded-xl border border-white/10 bg-white/5 p-4">
+            <h3 className="mb-3 text-sm font-semibold uppercase tracking-wide text-[#C9A84C]">{ROUND_LABELS[stage]}</h3>
+            <div className="grid gap-3 sm:grid-cols-2">
+              {matches.length > 0 ? matches.map((match) => <MatchSlot key={match.id} match={match} timezone={timezone} roomy />) : <EmptySlot label={ROUND_LABELS[stage]} roomy />}
+            </div>
+          </section>
+        )
+      })}
+
       <section className="rounded-xl border border-white/10 bg-white/5 p-4">
         <div className="mb-4 flex items-center justify-center gap-4">
           <Image src="/Word_Cup_Trophy.png" alt="World Cup Trophy" width={76} height={96} className="h-20 w-auto object-contain drop-shadow-lg" />
           <div>
             <p className="text-xs font-semibold uppercase tracking-widest text-[#C9A84C]">World Cup 2026</p>
-            <h2 className="text-xl font-bold text-white">Knockout Bracket</h2>
+            <h2 className="text-xl font-bold text-white">Finals</h2>
           </div>
         </div>
 
@@ -157,19 +170,6 @@ function MobileBracket({
           </div>
         </div>
       </section>
-
-      {[...MAIN_ROUNDS].reverse().map((stage) => {
-        const matches = displayMatches.filter((match) => match.stage === stage)
-
-        return (
-          <section key={stage} className="rounded-xl border border-white/10 bg-white/5 p-4">
-            <h3 className="mb-3 text-sm font-semibold uppercase tracking-wide text-[#C9A84C]">{ROUND_LABELS[stage]}</h3>
-            <div className="grid gap-3 sm:grid-cols-2">
-              {matches.length > 0 ? matches.map((match) => <MatchSlot key={match.id} match={match} timezone={timezone} roomy />) : <EmptySlot label={ROUND_LABELS[stage]} roomy />}
-            </div>
-          </section>
-        )
-      })}
     </div>
   )
 }

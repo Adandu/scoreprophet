@@ -31,7 +31,7 @@ export function GroupStageTab({ matches }: { matches: GroupMatch[] }) {
   }
 
   return (
-    <div className="grid gap-4 min-[480px]:grid-cols-2 md:grid-cols-3 xl:grid-cols-4">
+    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
       {groups.map((group) => (
         <section key={group} className="rounded-xl border border-white/10 bg-white/5 p-4">
           <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-[#C9A84C]">

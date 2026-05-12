@@ -6,7 +6,10 @@ import { Countdown } from '@/components/countdown'
 export const revalidate = 60
 
 async function getFeaturedMatch() {
-  const live = await prisma.match.findFirst({ where: { status: 'LIVE' } })
+  const live = await prisma.match.findFirst({
+    where: { status: 'LIVE' },
+    orderBy: { kickoff: 'asc' },
+  })
   if (live) return live
   return prisma.match.findFirst({
     where: { status: 'SCHEDULED', kickoff: { gt: new Date() } },
@@ -37,10 +40,8 @@ export default async function HomePage() {
               kickoff: match.kickoff.toISOString(),
             }}
             timezone={timezone}
+            countdown={match.status === 'SCHEDULED' ? <Countdown kickoff={match.kickoff.toISOString()} /> : undefined}
           />
-          {match.status === 'SCHEDULED' && (
-            <Countdown kickoff={match.kickoff.toISOString()} />
-          )}
         </>
       ) : (
         <div className="rounded-xl border border-white/10 bg-white/5 p-12 text-center text-white/50">

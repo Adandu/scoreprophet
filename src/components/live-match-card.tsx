@@ -3,6 +3,7 @@
 import { useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
+import type { ReactNode } from 'react'
 import { formatMatchTime } from '@/lib/format-date'
 
 interface Props {
@@ -17,9 +18,10 @@ interface Props {
     kickoff: string
   }
   timezone: string
+  countdown?: ReactNode
 }
 
-export function LiveMatchCard({ match, timezone }: Props) {
+export function LiveMatchCard({ match, timezone, countdown }: Props) {
   const router = useRouter()
 
   useEffect(() => {
@@ -64,6 +66,11 @@ export function LiveMatchCard({ match, timezone }: Props) {
           <span className="text-center font-semibold text-white">{match.awayTeam}</span>
         </div>
       </div>
+      {countdown && (
+        <div className="mt-6 border-t border-white/10 pt-4">
+          {countdown}
+        </div>
+      )}
     </div>
   )
 }
