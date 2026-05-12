@@ -23,12 +23,25 @@ interface Props {
   existing: ExistingPrediction[]
   isKnockout: boolean
   existingAdvanceTeam?: string
+  championshipId: number
+  doubleChanceEnabled: boolean
 }
 
 const SINGLE_OPTS = ['1', 'X', '2']
 const DOUBLE_OPTS = ['1X', 'X2', '12']
 
-export function PredictionForm({ matchId, homeTeam, awayTeam, homeTeamCrest, awayTeamCrest, existing, isKnockout, existingAdvanceTeam }: Props) {
+export function PredictionForm({
+  matchId,
+  homeTeam,
+  awayTeam,
+  homeTeamCrest,
+  awayTeamCrest,
+  existing,
+  isKnockout,
+  existingAdvanceTeam,
+  championshipId,
+  doubleChanceEnabled,
+}: Props) {
   const [state, formAction, pending] = useActionState(savePrediction, null)
 
   const hasSingle = existing.some((p) => p.type === 'SINGLE_OUTCOME')
@@ -49,6 +62,7 @@ export function PredictionForm({ matchId, homeTeam, awayTeam, homeTeamCrest, awa
               return (
                 <form key={opt} action={formAction}>
                   <input type="hidden" name="matchId" value={matchId} />
+                  <input type="hidden" name="championshipId" value={championshipId} />
                   <input type="hidden" name="type" value="SINGLE_OUTCOME" />
                   <input type="hidden" name="value" value={opt} />
                   <Button type="submit" size="sm" disabled={pending}
@@ -64,7 +78,7 @@ export function PredictionForm({ matchId, homeTeam, awayTeam, homeTeamCrest, awa
       )}
 
       {/* Double Chance */}
-      {!hasSingle && (
+      {!hasSingle && doubleChanceEnabled && (
         <div>
           <p className="text-xs text-white/50 mb-1">Double chance (1 pt){hasDouble && ' ✓'}</p>
           <div className="flex justify-center gap-2">
@@ -73,6 +87,7 @@ export function PredictionForm({ matchId, homeTeam, awayTeam, homeTeamCrest, awa
               return (
                 <form key={opt} action={formAction}>
                   <input type="hidden" name="matchId" value={matchId} />
+                  <input type="hidden" name="championshipId" value={championshipId} />
                   <input type="hidden" name="type" value="DOUBLE_CHANCE" />
                   <input type="hidden" name="value" value={opt} />
                   <Button type="submit" size="sm" disabled={pending}
@@ -92,6 +107,7 @@ export function PredictionForm({ matchId, homeTeam, awayTeam, homeTeamCrest, awa
         <p className="text-xs text-white/50 mb-1">Exact score (5 pts){hasExact && ' ✓'}</p>
         <form action={formAction} className="flex justify-center gap-2">
           <input type="hidden" name="matchId" value={matchId} />
+          <input type="hidden" name="championshipId" value={championshipId} />
           <input type="hidden" name="type" value="EXACT_SCORE" />
           <Input name="value" placeholder="e.g. 2-1"
             defaultValue={existing.find((p) => p.type === 'EXACT_SCORE')?.value ?? ''}
@@ -112,6 +128,7 @@ export function PredictionForm({ matchId, homeTeam, awayTeam, homeTeamCrest, awa
           homeTeamCrest={homeTeamCrest}
           awayTeamCrest={awayTeamCrest}
           existingTeam={existingAdvanceTeam}
+          championshipId={championshipId}
         />
       )}
     </div>
@@ -125,6 +142,7 @@ function KnockoutAdvanceForm({
   homeTeamCrest,
   awayTeamCrest,
   existingTeam,
+  championshipId,
 }: {
   matchId: number
   homeTeam: string
@@ -132,6 +150,7 @@ function KnockoutAdvanceForm({
   homeTeamCrest: string
   awayTeamCrest: string
   existingTeam?: string
+  championshipId: number
 }) {
   const [state, formAction, pending] = useActionState(saveKnockoutAdvance, null)
   return (
@@ -146,6 +165,7 @@ function KnockoutAdvanceForm({
           return (
             <form key={team.name} action={formAction}>
               <input type="hidden" name="matchId" value={matchId} />
+              <input type="hidden" name="championshipId" value={championshipId} />
               <input type="hidden" name="predictedTeam" value={team.name} />
               <Button
                 type="submit"

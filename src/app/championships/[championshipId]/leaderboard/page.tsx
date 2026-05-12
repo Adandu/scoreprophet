@@ -14,7 +14,7 @@ export default async function ChampionshipLeaderboardPage({ params }: { params: 
   ])
 
   const memberIds = championship.members.map((member) => member.userId)
-  const ranked = await getRankedUsers(memberIds)
+  const ranked = await getRankedUsers(memberIds, championship)
   const medals = ['🥇', '🥈', '🥉']
 
   return (
@@ -29,7 +29,9 @@ export default async function ChampionshipLeaderboardPage({ params }: { params: 
               <th className="px-4 py-3 text-left text-white/40 font-normal">Player</th>
               <th className="px-4 py-3 text-right text-white/40 font-normal">Exact</th>
               <th className="px-4 py-3 text-right text-white/40 font-normal">Result</th>
-              <th className="px-4 py-3 text-right text-white/40 font-normal">Double</th>
+              {championship.doubleChanceEnabled && (
+                <th className="px-4 py-3 text-right text-white/40 font-normal">Double</th>
+              )}
               <th className="px-4 py-3 text-right text-white/40 font-normal">Advance</th>
               <th className="px-4 py-3 text-right text-white/40 font-normal font-semibold">Total</th>
             </tr>
@@ -45,7 +47,9 @@ export default async function ChampionshipLeaderboardPage({ params }: { params: 
                   </td>
                   <td className="px-4 py-3 text-right text-yellow-400">{u.exact}</td>
                   <td className="px-4 py-3 text-right text-green-400">{u.single}</td>
-                  <td className="px-4 py-3 text-right text-blue-400">{u.double}</td>
+                  {championship.doubleChanceEnabled && (
+                    <td className="px-4 py-3 text-right text-blue-400">{u.double ?? 0}</td>
+                  )}
                   <td className="px-4 py-3 text-right text-purple-400">{u.advance}</td>
                   <td className="px-4 py-3 text-right font-bold text-[#C9A84C] text-base">{u.total}</td>
                 </tr>
@@ -53,7 +57,9 @@ export default async function ChampionshipLeaderboardPage({ params }: { params: 
             })}
             {ranked.length === 0 && (
               <tr>
-                <td colSpan={7} className="px-4 py-8 text-center text-white/30">No championship members yet.</td>
+                <td colSpan={championship.doubleChanceEnabled ? 7 : 6} className="px-4 py-8 text-center text-white/30">
+                  No championship members yet.
+                </td>
               </tr>
             )}
           </tbody>

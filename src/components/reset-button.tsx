@@ -4,12 +4,13 @@ import { useActionState } from 'react'
 import { resetMatchPredictions } from '@/actions/predictions'
 import { Button } from '@/components/ui/button'
 
-export function ResetButton({ matchId }: { matchId: number }) {
+export function ResetButton({ matchId, championshipId }: { matchId: number; championshipId: number }) {
   const [state, formAction, pending] = useActionState(resetMatchPredictions, null)
 
   return (
     <form action={formAction} className="mt-2 text-center">
       <input type="hidden" name="matchId" value={matchId} />
+      <input type="hidden" name="championshipId" value={championshipId} />
       <Button
         type="submit"
         size="sm"

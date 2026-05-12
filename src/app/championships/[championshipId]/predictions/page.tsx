@@ -32,8 +32,8 @@ export default async function ChampionshipPredictionsPage({ params }: { params: 
       where: { status: { not: 'FINISHED' } },
       orderBy: { kickoff: 'asc' },
     }),
-    prisma.prediction.findMany({ where: { userId: session.userId } }),
-    prisma.knockoutAdvance.findMany({ where: { userId: session.userId } }),
+    prisma.prediction.findMany({ where: { userId: session.userId, championshipId } }),
+    prisma.knockoutAdvance.findMany({ where: { userId: session.userId, championshipId } }),
   ])
 
   const predByMatch = userPredictions.reduce<Record<number, typeof userPredictions>>((acc, p) => {
@@ -68,6 +68,9 @@ export default async function ChampionshipPredictionsPage({ params }: { params: 
               {stageMatches.map((match) => {
                 const locked = match.kickoff <= now
                 const existing = predByMatch[match.id] ?? []
+                const visibleExisting = championship.doubleChanceEnabled
+                  ? existing
+                  : existing.filter((p) => p.type !== 'DOUBLE_CHANCE')
                 return (
                   <div key={match.id} className={`rounded-xl border p-4 ${locked ? 'border-white/5 bg-white/3 opacity-60' : 'border-white/10 bg-white/5'}`}>
                     <div className="flex items-center justify-between mb-2">
@@ -90,13 +93,17 @@ export default async function ChampionshipPredictionsPage({ params }: { params: 
                           existing={existing}
                           isKnockout={match.stage !== 'GROUP'}
                           existingAdvanceTeam={advanceByMatch[match.id]}
+                          championshipId={championshipId}
+                          doubleChanceEnabled={championship.doubleChanceEnabled}
                         />
-                        {(existing.length > 0 || advanceByMatch[match.id]) && <ResetButton matchId={match.id} />}
+                        {(visibleExisting.length > 0 || advanceByMatch[match.id]) && (
+                          <ResetButton matchId={match.id} championshipId={championshipId} />
+                        )}
                       </>
                     )}
-                    {locked && existing.length > 0 && (
+                    {locked && visibleExisting.length > 0 && (
                       <div className="mt-2 flex flex-wrap gap-1">
-                        {existing.map((p) => (
+                        {visibleExisting.map((p) => (
                           <Badge key={p.id} className="bg-white/10 text-white/60 text-xs">{p.value}</Badge>
                         ))}
                       </div>
