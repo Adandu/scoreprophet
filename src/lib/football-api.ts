@@ -41,6 +41,56 @@ export interface HeadToHeadSummary {
   matches: HeadToHeadMatch[]
 }
 
+export interface LivePlayer {
+  id: string
+  name: string
+  shirtNumber: number
+  position: string // "Goalkeeper" | "Defence" | "Midfield" | "Offence"
+}
+
+export interface LiveTeam {
+  id: string
+  name: string
+  crest: string
+  formation: string  // e.g. "4-3-3", empty string if unknown
+  lineup: LivePlayer[]
+  bench: LivePlayer[]
+  coach: string | null
+}
+
+export interface LiveMatchEvent {
+  minute: number
+  teamId: string
+  playerName: string
+}
+
+export interface LiveMatchSubstitution {
+  minute: number
+  teamId: string
+  playerOutName: string
+  playerInName: string
+}
+
+export interface LiveMatchBooking extends LiveMatchEvent {
+  card: 'YELLOW_CARD' | 'RED_CARD' | 'YELLOW_RED_CARD'
+}
+
+export interface LiveMatchDetails {
+  matchId: string
+  status: string
+  minute: number | null
+  venue: string | null
+  homeScore: number | null
+  awayScore: number | null
+  homeTeam: LiveTeam
+  awayTeam: LiveTeam
+  referee: { name: string; nationality: string } | null
+  goals: LiveMatchEvent[]
+  bookings: LiveMatchBooking[]
+  substitutions: LiveMatchSubstitution[]
+  homePossession: number | null  // 0–100, null if not available
+}
+
 const STAGE_MAP: Record<string, Stage> = {
   GROUP_STAGE: 'GROUP',
   LAST_32: 'ROUND_OF_32',
@@ -205,5 +255,93 @@ export async function fetchHeadToHead(matchId: string | number, limit = 10): Pro
       homeScore: match.score?.fullTime?.home ?? null,
       awayScore: match.score?.fullTime?.away ?? null,
     })),
+  }
+}
+
+export async function fetchLiveMatchDetails(matchId: string | number): Promise<LiveMatchDetails> {
+  const res = await fetch(
+    `${BASE_URL}/matches/${matchId}`,
+    {
+      headers: getHeaders(),
+      next: { revalidate: 60 },
+    }
+  )
+  if (!res.ok) {
+    throw new Error(`football-data.org error ${res.status}: ${res.statusText}`)
+  }
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const m: any = await res.json()
+
+  const homeId = String(m.homeTeam?.id ?? '')
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const normalizePlayer = (p: any): LivePlayer => ({
+    id: String(p.id ?? ''),
+    name: p.name ?? '',
+    shirtNumber: p.shirtNumber ?? 0,
+    position: p.position ?? '',
+  })
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const normalizeTeam = (t: any): LiveTeam => ({
+    id: String(t.id ?? ''),
+    name: t.name ?? '',
+    crest: t.crest ?? '',
+    formation: t.formation ?? '',
+    lineup: (t.lineup ?? []).map(normalizePlayer),
+    bench: (t.bench ?? []).map(normalizePlayer),
+    coach: t.coach?.name ?? null,
+  })
+
+  const referee = (m.referees ?? []).find(
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (r: any) => r.role === 'REFEREE'
+  )
+
+  // Extract possession from statistics if present
+  let homePossession: number | null = null
+  if (Array.isArray(m.statistics)) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const homeStats = m.statistics.find((s: any) => String(s.team?.id) === homeId)
+    if (homeStats) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const poss = homeStats.statistics?.find((s: any) => s.type === 'BALL_POSSESSION')
+      if (poss?.value != null) homePossession = Number(poss.value)
+    }
+  }
+
+  return {
+    matchId: String(m.id),
+    status: STATUS_MAP[m.status] ?? m.status ?? '',
+    minute: m.minute ?? null,
+    venue: m.venue ?? null,
+    homeScore: m.score?.fullTime?.home ?? null,
+    awayScore: m.score?.fullTime?.away ?? null,
+    homeTeam: normalizeTeam(m.homeTeam ?? {}),
+    awayTeam: normalizeTeam(m.awayTeam ?? {}),
+    referee: referee
+      ? { name: referee.name ?? '', nationality: referee.nationality ?? '' }
+      : null,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    goals: (m.goals ?? []).map((g: any): LiveMatchEvent => ({
+      minute: g.minute ?? 0,
+      teamId: String(g.team?.id ?? ''),
+      playerName: g.scorer?.name ?? '',
+    })),
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    bookings: (m.bookings ?? []).map((b: any): LiveMatchBooking => ({
+      minute: b.minute ?? 0,
+      teamId: String(b.team?.id ?? ''),
+      playerName: b.player?.name ?? '',
+      card: b.card ?? 'YELLOW_CARD',
+    })),
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    substitutions: (m.substitutions ?? []).map((s: any): LiveMatchSubstitution => ({
+      minute: s.minute ?? 0,
+      teamId: String(s.team?.id ?? ''),
+      playerOutName: s.playerOut?.name ?? '',
+      playerInName: s.playerIn?.name ?? '',
+    })),
+    homePossession,
   }
 }
