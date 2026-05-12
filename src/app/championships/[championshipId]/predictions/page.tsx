@@ -5,6 +5,7 @@ import { ResetButton } from '@/components/reset-button'
 import { Badge } from '@/components/ui/badge'
 import { formatMatchTime } from '@/lib/format-date'
 import { ChampionshipPageNav } from '@/components/championship-page-nav'
+import Image from 'next/image'
 
 type Stage = 'GROUP' | 'ROUND_OF_32' | 'ROUND_OF_16' | 'QUARTER_FINAL' | 'SEMI_FINAL' | 'THIRD_PLACE' | 'FINAL'
 
@@ -73,10 +74,10 @@ export default async function ChampionshipPredictionsPage({ params }: { params: 
                       <span className="text-xs text-white/40">{formatMatchTime(match.kickoff, timezone)}</span>
                       {locked && <Badge variant="outline" className="text-xs border-white/20 text-white/40">Locked</Badge>}
                     </div>
-                    <div className="flex items-center justify-between font-semibold text-white">
-                      <span>{match.homeTeam}</span>
-                      <span className="text-white/30">vs</span>
-                      <span>{match.awayTeam}</span>
+                    <div className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-3 font-semibold text-white">
+                      <TeamLabel name={match.homeTeam} crest={match.homeTeamCrest} align="right" />
+                      <span className="w-8 text-center text-xs uppercase tracking-widest text-white/30">vs</span>
+                      <TeamLabel name={match.awayTeam} crest={match.awayTeamCrest} align="left" />
                     </div>
                     {!locked && (
                       <>
@@ -84,6 +85,8 @@ export default async function ChampionshipPredictionsPage({ params }: { params: 
                           matchId={match.id}
                           homeTeam={match.homeTeam}
                           awayTeam={match.awayTeam}
+                          homeTeamCrest={match.homeTeamCrest}
+                          awayTeamCrest={match.awayTeamCrest}
                           existing={existing}
                           isKnockout={match.stage !== 'GROUP'}
                           existingAdvanceTeam={advanceByMatch[match.id]}
@@ -105,6 +108,22 @@ export default async function ChampionshipPredictionsPage({ params }: { params: 
           </section>
         )
       })}
+    </div>
+  )
+}
+
+function TeamLabel({ name, crest, align }: { name: string; crest: string; align: 'left' | 'right' }) {
+  const crestNode = (
+    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded bg-white/10">
+      {crest ? <Image src={crest} alt="" width={32} height={32} className="max-h-8 w-auto object-contain" /> : <span className="h-5 w-5 rounded bg-white/10" />}
+    </span>
+  )
+
+  return (
+    <div className={`flex min-w-0 items-center gap-2 ${align === 'right' ? 'justify-end text-right' : 'justify-start text-left'}`}>
+      {align === 'right' && crestNode}
+      <span className="min-w-0 truncate">{name}</span>
+      {align === 'left' && crestNode}
     </div>
   )
 }

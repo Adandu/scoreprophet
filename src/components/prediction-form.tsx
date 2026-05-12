@@ -1,6 +1,7 @@
 'use client'
 
 import { useActionState } from 'react'
+import Image from 'next/image'
 import { savePrediction, saveKnockoutAdvance } from '@/actions/predictions'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -17,6 +18,8 @@ interface Props {
   matchId: number
   homeTeam: string
   awayTeam: string
+  homeTeamCrest: string
+  awayTeamCrest: string
   existing: ExistingPrediction[]
   isKnockout: boolean
   existingAdvanceTeam?: string
@@ -25,7 +28,7 @@ interface Props {
 const SINGLE_OPTS = ['1', 'X', '2']
 const DOUBLE_OPTS = ['1X', 'X2', '12']
 
-export function PredictionForm({ matchId, homeTeam, awayTeam, existing, isKnockout, existingAdvanceTeam }: Props) {
+export function PredictionForm({ matchId, homeTeam, awayTeam, homeTeamCrest, awayTeamCrest, existing, isKnockout, existingAdvanceTeam }: Props) {
   const [state, formAction, pending] = useActionState(savePrediction, null)
 
   const hasSingle = existing.some((p) => p.type === 'SINGLE_OUTCOME')
@@ -33,14 +36,14 @@ export function PredictionForm({ matchId, homeTeam, awayTeam, existing, isKnocko
   const hasExact = existing.some((p) => p.type === 'EXACT_SCORE')
 
   return (
-    <div className="space-y-3 mt-3">
+    <div className="mt-3 space-y-3 text-center">
       {state?.error && <p className="text-xs text-red-400">{state.error}</p>}
 
       {/* Single Outcome */}
       {!hasDouble && (
         <div>
           <p className="text-xs text-white/50 mb-1">Match result (3 pts){hasSingle && ' ✓'}</p>
-          <div className="flex gap-2">
+          <div className="flex justify-center gap-2">
             {SINGLE_OPTS.map((opt) => {
               const active = existing.find((p) => p.type === 'SINGLE_OUTCOME')?.value === opt
               return (
@@ -64,7 +67,7 @@ export function PredictionForm({ matchId, homeTeam, awayTeam, existing, isKnocko
       {!hasSingle && (
         <div>
           <p className="text-xs text-white/50 mb-1">Double chance (1 pt){hasDouble && ' ✓'}</p>
-          <div className="flex gap-2">
+          <div className="flex justify-center gap-2">
             {DOUBLE_OPTS.map((opt) => {
               const active = existing.find((p) => p.type === 'DOUBLE_CHANCE')?.value === opt
               return (
@@ -87,7 +90,7 @@ export function PredictionForm({ matchId, homeTeam, awayTeam, existing, isKnocko
       {/* Exact Score */}
       <div>
         <p className="text-xs text-white/50 mb-1">Exact score (5 pts){hasExact && ' ✓'}</p>
-        <form action={formAction} className="flex gap-2">
+        <form action={formAction} className="flex justify-center gap-2">
           <input type="hidden" name="matchId" value={matchId} />
           <input type="hidden" name="type" value="EXACT_SCORE" />
           <Input name="value" placeholder="e.g. 2-1"
@@ -102,7 +105,14 @@ export function PredictionForm({ matchId, homeTeam, awayTeam, existing, isKnocko
 
       {/* Knockout Advance */}
       {isKnockout && (
-        <KnockoutAdvanceForm matchId={matchId} homeTeam={homeTeam} awayTeam={awayTeam} existingTeam={existingAdvanceTeam} />
+        <KnockoutAdvanceForm
+          matchId={matchId}
+          homeTeam={homeTeam}
+          awayTeam={awayTeam}
+          homeTeamCrest={homeTeamCrest}
+          awayTeamCrest={awayTeamCrest}
+          existingTeam={existingAdvanceTeam}
+        />
       )}
     </div>
   )
@@ -112,24 +122,31 @@ function KnockoutAdvanceForm({
   matchId,
   homeTeam,
   awayTeam,
+  homeTeamCrest,
+  awayTeamCrest,
   existingTeam,
 }: {
   matchId: number
   homeTeam: string
   awayTeam: string
+  homeTeamCrest: string
+  awayTeamCrest: string
   existingTeam?: string
 }) {
   const [state, formAction, pending] = useActionState(saveKnockoutAdvance, null)
   return (
     <div>
       <p className="text-xs text-white/50 mb-1">Who advances? (1 bonus pt){existingTeam && ` ✓ ${existingTeam}`}</p>
-      <div className="flex flex-wrap gap-2">
-        {[homeTeam, awayTeam].map((team) => {
-          const active = existingTeam === team
+      <div className="flex flex-wrap justify-center gap-2">
+        {[
+          { name: homeTeam, crest: homeTeamCrest },
+          { name: awayTeam, crest: awayTeamCrest },
+        ].map((team) => {
+          const active = existingTeam === team.name
           return (
-            <form key={team} action={formAction}>
+            <form key={team.name} action={formAction}>
               <input type="hidden" name="matchId" value={matchId} />
-              <input type="hidden" name="predictedTeam" value={team} />
+              <input type="hidden" name="predictedTeam" value={team.name} />
               <Button
                 type="submit"
                 size="sm"
@@ -137,7 +154,8 @@ function KnockoutAdvanceForm({
                 variant={active ? 'default' : 'outline'}
                 className={active ? 'bg-purple-600 text-white border-0' : 'border-white/20 text-white/70 bg-transparent hover:bg-white/10'}
               >
-                {team}
+                {team.crest && <Image src={team.crest} alt="" width={18} height={18} className="max-h-4 w-auto object-contain" />}
+                {team.name}
               </Button>
             </form>
           )

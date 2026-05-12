@@ -8,7 +8,7 @@ export function ResetButton({ matchId }: { matchId: number }) {
   const [state, formAction, pending] = useActionState(resetMatchPredictions, null)
 
   return (
-    <form action={formAction} className="mt-2">
+    <form action={formAction} className="mt-2 text-center">
       <input type="hidden" name="matchId" value={matchId} />
       <Button
         type="submit"
