@@ -3,7 +3,7 @@ import { fetchLiveMatch, fetchLiveMatchDetails } from '@/lib/football-api'
 import { PitchFormation } from '@/components/pitch-formation'
 import { LivePageRefresh } from '@/components/live-page-refresh'
 
-export const revalidate = 60
+export const revalidate = 5
 
 export default async function LivePage() {
   const liveMatch = await fetchLiveMatch()

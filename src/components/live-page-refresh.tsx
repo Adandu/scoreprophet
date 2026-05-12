@@ -7,7 +7,7 @@ export function LivePageRefresh() {
   const router = useRouter()
 
   useEffect(() => {
-    const interval = setInterval(() => router.refresh(), 60_000)
+    const interval = setInterval(() => router.refresh(), 5_000)
     return () => clearInterval(interval)
   }, [router])
 

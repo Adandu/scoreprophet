@@ -154,7 +154,7 @@ export async function fetchLiveMatch(): Promise<NormalizedMatch | null> {
     `${BASE_URL}/competitions/${COMPETITION}/matches?status=IN_PLAY`,
     {
       headers: getHeaders(),
-      next: { revalidate: 60 },
+      next: { revalidate: 5 },
     }
   )
   if (!res.ok) {
@@ -263,7 +263,7 @@ export async function fetchLiveMatchDetails(matchId: string | number): Promise<L
     `${BASE_URL}/matches/${matchId}`,
     {
       headers: getHeaders(),
-      next: { revalidate: 60 },
+      next: { revalidate: 5 },
     }
   )
   if (!res.ok) {
