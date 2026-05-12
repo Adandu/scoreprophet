@@ -22,13 +22,14 @@ model User {
 }
 
 model Championship {
-  id          Int                  @id @default(autoincrement())
-  name        String               @unique
-  description String               @default("")
-  isActive    Boolean              @default(true)
-  createdAt   DateTime             @default(now())
-  updatedAt   DateTime             @updatedAt
-  members     ChampionshipMember[]
+  id                  Int                  @id @default(autoincrement())
+  name                String               @unique
+  description         String               @default("")
+  isActive            Boolean              @default(true)
+  doubleChanceEnabled Boolean              @default(true)
+  createdAt           DateTime             @default(now())
+  updatedAt           DateTime             @updatedAt
+  members             ChampionshipMember[]
 }
 
 model ChampionshipMember {
@@ -69,29 +70,31 @@ model Team {
 }
 
 model Prediction {
-  id            Int            @id @default(autoincrement())
-  userId        Int
-  matchId       Int
-  type          PredictionType
-  value         String
-  pointsAwarded Int?
-  createdAt     DateTime       @default(now())
-  user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
-  match         Match          @relation(fields: [matchId], references: [id])
+  id             Int            @id @default(autoincrement())
+  userId         Int
+  matchId        Int
+  championshipId Int
+  type           PredictionType
+  value          String
+  pointsAwarded  Int?
+  createdAt      DateTime       @default(now())
+  user           User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  match          Match          @relation(fields: [matchId], references: [id])
 
-  @@unique([userId, matchId, type])
+  @@unique([userId, matchId, type, championshipId])
 }
 
 model KnockoutAdvance {
-  id            Int      @id @default(autoincrement())
-  userId        Int
-  matchId       Int
-  predictedTeam String
-  pointsAwarded Int?
-  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  match         Match    @relation(fields: [matchId], references: [id])
+  id             Int      @id @default(autoincrement())
+  userId         Int
+  matchId        Int
+  championshipId Int
+  predictedTeam  String
+  pointsAwarded  Int?
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  match          Match    @relation(fields: [matchId], references: [id])
 
-  @@unique([userId, matchId])
+  @@unique([userId, matchId, championshipId])
 }
 
 model PasswordResetToken {
