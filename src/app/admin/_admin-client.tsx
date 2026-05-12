@@ -110,16 +110,6 @@ export function AdminClient({
         </div>
       </section>
 
-      {/* Override Scores */}
-      <section>
-        <h2 className="mb-3 text-lg font-semibold text-[#C9A84C]">Override Match Score</h2>
-        <div className="space-y-3">
-          {matches.map((match) => (
-            <MatchOverrideRow key={match.id} match={match} timezone={timezone} />
-          ))}
-        </div>
-      </section>
-
       {/* Users */}
       <section>
         <h2 className="mb-3 text-lg font-semibold text-[#C9A84C]">Users</h2>
@@ -138,6 +128,16 @@ export function AdminClient({
               ))}
             </tbody>
           </table>
+        </div>
+      </section>
+
+      {/* Override Scores */}
+      <section>
+        <h2 className="mb-3 text-lg font-semibold text-[#C9A84C]">Override Match Score</h2>
+        <div className="space-y-3">
+          {matches.map((match) => (
+            <MatchOverrideRow key={match.id} match={match} timezone={timezone} />
+          ))}
         </div>
       </section>
     </div>
