@@ -114,7 +114,7 @@ export default async function ChampionshipPredictionsPage({ params }: { params: 
 
 function TeamLabel({ name, crest, align }: { name: string; crest: string; align: 'left' | 'right' }) {
   const crestNode = (
-    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded bg-white/10">
+    <span className="flex h-8 w-8 shrink-0 items-center justify-center">
       {crest ? <Image src={crest} alt="" width={32} height={32} className="max-h-8 w-auto object-contain" /> : <span className="h-5 w-5 rounded bg-white/10" />}
     </span>
   )
