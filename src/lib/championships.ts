@@ -8,6 +8,7 @@ export interface ChampionshipSummary {
   name: string
   description: string
   isActive: boolean
+  doubleChanceEnabled: boolean
 }
 
 export async function getUserChampionships(userId: number): Promise<ChampionshipSummary[]> {
@@ -25,6 +26,7 @@ export async function getUserChampionships(userId: number): Promise<Championship
     name: championship.name,
     description: championship.description,
     isActive: championship.isActive,
+    doubleChanceEnabled: championship.doubleChanceEnabled,
   }))
 }
 

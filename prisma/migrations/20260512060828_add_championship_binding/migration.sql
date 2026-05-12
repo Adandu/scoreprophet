@@ -31,7 +31,7 @@ CREATE TABLE "new_KnockoutAdvance" (
     CONSTRAINT "KnockoutAdvance_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User" ("id") ON DELETE CASCADE ON UPDATE CASCADE,
     CONSTRAINT "KnockoutAdvance_matchId_fkey" FOREIGN KEY ("matchId") REFERENCES "Match" ("id") ON DELETE RESTRICT ON UPDATE CASCADE
 );
-INSERT INTO "new_KnockoutAdvance" ("id", "matchId", "pointsAwarded", "predictedTeam", "userId") SELECT "id", "matchId", "pointsAwarded", "predictedTeam", "userId" FROM "KnockoutAdvance";
+INSERT INTO "new_KnockoutAdvance" ("id", "matchId", "championshipId", "pointsAwarded", "predictedTeam", "userId") SELECT "id", "matchId", 0, "pointsAwarded", "predictedTeam", "userId" FROM "KnockoutAdvance";
 DROP TABLE "KnockoutAdvance";
 ALTER TABLE "new_KnockoutAdvance" RENAME TO "KnockoutAdvance";
 CREATE UNIQUE INDEX "KnockoutAdvance_userId_matchId_championshipId_key" ON "KnockoutAdvance"("userId", "matchId", "championshipId");
@@ -47,7 +47,7 @@ CREATE TABLE "new_Prediction" (
     CONSTRAINT "Prediction_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User" ("id") ON DELETE CASCADE ON UPDATE CASCADE,
     CONSTRAINT "Prediction_matchId_fkey" FOREIGN KEY ("matchId") REFERENCES "Match" ("id") ON DELETE RESTRICT ON UPDATE CASCADE
 );
-INSERT INTO "new_Prediction" ("createdAt", "id", "matchId", "pointsAwarded", "type", "userId", "value") SELECT "createdAt", "id", "matchId", "pointsAwarded", "type", "userId", "value" FROM "Prediction";
+INSERT INTO "new_Prediction" ("createdAt", "id", "matchId", "championshipId", "pointsAwarded", "type", "userId", "value") SELECT "createdAt", "id", "matchId", 0, "pointsAwarded", "type", "userId", "value" FROM "Prediction";
 DROP TABLE "Prediction";
 ALTER TABLE "new_Prediction" RENAME TO "Prediction";
 CREATE UNIQUE INDEX "Prediction_userId_matchId_type_championshipId_key" ON "Prediction"("userId", "matchId", "type", "championshipId");
