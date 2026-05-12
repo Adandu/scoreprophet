@@ -6,6 +6,7 @@ export interface SessionData {
   username?: string
   isAdmin?: boolean
   timezone?: string
+  theme?: 'DARK' | 'LIGHT'
   selectedChampionshipId?: number
 }
 

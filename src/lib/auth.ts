@@ -30,5 +30,6 @@ export async function getCurrentUser() {
     username: session.username!,
     isAdmin: session.isAdmin ?? false,
     timezone: session.timezone ?? 'Europe/Bucharest',
+    theme: session.theme ?? 'DARK',
   }
 }

@@ -2,53 +2,38 @@
 
 import { useActionState } from 'react'
 import Link from 'next/link'
-import { login } from '@/actions/auth'
+import { requestPasswordReset } from '@/actions/auth'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 
-export default function LoginPage() {
-  const [state, action, isPending] = useActionState(login, null)
+export default function ForgotPasswordPage() {
+  const [state, action, isPending] = useActionState(requestPasswordReset, null)
 
   return (
     <main className="min-h-screen bg-[#0A1628] flex items-center justify-center p-4">
       <Card className="w-full max-w-md bg-white/5 border border-white/10 text-white">
         <CardHeader className="pb-4">
           <CardTitle className="text-2xl font-bold text-center text-[#C9A84C]">
-            ScoreProphet
+            Reset Password
           </CardTitle>
-          <p className="text-center text-white/60 text-sm mt-1">Sign in to your account</p>
+          <p className="text-center text-white/60 text-sm mt-1">Enter the email address saved on your account.</p>
         </CardHeader>
         <CardContent>
           <form action={action} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="username" className="text-white/80">
-                Username
+              <Label htmlFor="email" className="text-white/80">
+                Email
               </Label>
               <Input
-                id="username"
-                name="username"
-                type="text"
-                autoComplete="username"
+                id="email"
+                name="email"
+                type="email"
+                autoComplete="email"
                 required
                 className="bg-white/10 border-white/20 text-white placeholder:text-white/30 focus:border-[#C9A84C] focus:ring-[#C9A84C]"
-                placeholder="Enter your username"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="password" className="text-white/80">
-                Password
-              </Label>
-              <Input
-                id="password"
-                name="password"
-                type="password"
-                autoComplete="current-password"
-                required
-                className="bg-white/10 border-white/20 text-white placeholder:text-white/30 focus:border-[#C9A84C] focus:ring-[#C9A84C]"
-                placeholder="Enter your password"
+                placeholder="you@example.com"
               />
             </div>
 
@@ -57,26 +42,24 @@ export default function LoginPage() {
                 {state.error}
               </p>
             )}
+            {state?.success && (
+              <p className="text-green-400 text-sm bg-green-400/10 border border-green-400/20 rounded-md px-3 py-2">
+                If that email is attached to an account, a reset link has been sent.
+              </p>
+            )}
 
             <Button
               type="submit"
               disabled={isPending}
               className="w-full bg-[#C9A84C] text-[#0A1628] font-semibold hover:bg-[#D4B85A] disabled:opacity-50 transition-colors"
             >
-              {isPending ? 'Signing in…' : 'Sign In'}
+              {isPending ? 'Sending...' : 'Send reset link'}
             </Button>
           </form>
 
           <p className="mt-4 text-center text-sm text-white/50">
-            <Link href="/forgot-password" className="text-[#C9A84C] hover:underline">
-              Forgot password?
-            </Link>
-          </p>
-
-          <p className="mt-2 text-center text-sm text-white/50">
-            Don&apos;t have an account?{' '}
-            <Link href="/register" className="text-[#C9A84C] hover:underline">
-              Register
+            <Link href="/login" className="text-[#C9A84C] hover:underline">
+              Back to sign in
             </Link>
           </p>
         </CardContent>

@@ -7,8 +7,77 @@
   --foreground: #ffffff;
 }
 
+.light {
+  --background: #f4f7fb;
+  --foreground: #0f172a;
+}
+
 body {
   background-color: #0A1628;
   color: #ffffff;
   min-height: 100vh;
+}
+
+.light body {
+  background-color: var(--background);
+  color: var(--foreground);
+}
+
+.light .bg-\[\#0A1628\],
+.light .bg-\[\#0A1628\]\/40,
+.light .bg-\[\#0A1628\]\/80,
+.light .bg-\[\#0A1628\]\/95 {
+  background-color: rgb(244 247 251 / var(--tw-bg-opacity, 1));
+}
+
+.light .bg-white\/5,
+.light .bg-white\/\[0\.03\],
+.light .bg-white\/10 {
+  background-color: rgb(255 255 255 / 0.86);
+}
+
+.light .border-white\/5,
+.light .border-white\/10,
+.light .border-white\/15,
+.light .border-white\/20 {
+  border-color: rgb(15 23 42 / 0.12);
+}
+
+.light .text-white {
+  color: rgb(15 23 42 / 1);
+}
+
+.light .text-white\/80,
+.light .text-white\/75,
+.light .text-white\/70,
+.light .text-white\/60 {
+  color: rgb(15 23 42 / 0.76);
+}
+
+.light .text-white\/50,
+.light .text-white\/45,
+.light .text-white\/40,
+.light .text-white\/35,
+.light .text-white\/30,
+.light .text-white\/25,
+.light .text-white\/20 {
+  color: rgb(71 85 105 / 0.95);
+}
+
+.light .placeholder\:text-white\/30::placeholder {
+  color: rgb(100 116 139 / 0.75);
+}
+
+.light .hover\:bg-white\/10:hover {
+  background-color: rgb(15 23 42 / 0.07);
+}
+
+.light .hover\:text-white:hover {
+  color: rgb(15 23 42 / 1);
+}
+
+.light input,
+.light select,
+.light textarea {
+  color: rgb(15 23 42);
 }

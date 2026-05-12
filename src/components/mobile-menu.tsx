@@ -13,6 +13,7 @@ interface User {
   username: string
   isAdmin: boolean
   timezone: string
+  theme?: 'DARK' | 'LIGHT'
 }
 
 interface Championship {
@@ -44,6 +45,7 @@ export function MobileMenu({
     ...championshipLinks,
     { href: '/tournament', label: 'Tournament' },
     { href: '/teams', label: 'Teams' },
+    ...(user ? [{ href: '/profile', label: 'Profile' }] : []),
     ...(user?.isAdmin ? [{ href: '/admin', label: 'Admin' }] : []),
   ]
 

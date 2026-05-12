@@ -29,6 +29,7 @@ export async function Navbar() {
           )}
           <Link href="/tournament" className="hover:text-white transition-colors">Tournament</Link>
           <Link href="/teams" className="hover:text-white transition-colors">Teams</Link>
+          {user && <Link href="/profile" className="hover:text-white transition-colors">Profile</Link>}
           {user?.isAdmin && (
             <Link href="/admin" className="text-[#C9A84C] hover:text-[#C9A84C]/80 transition-colors">Admin</Link>
           )}
@@ -36,7 +37,7 @@ export async function Navbar() {
         <div className="hidden items-center gap-3 lg:flex">
           {user ? (
             <>
-              <span className="text-sm text-white/50">{user.username}</span>
+              <Link href="/profile" className="text-sm text-white/50 hover:text-white">{user.username}</Link>
               {championships.length > 0 && selectedChampionship && (
                 <ChampionshipSelector championships={championships} selectedId={selectedChampionship.id} />
               )}
