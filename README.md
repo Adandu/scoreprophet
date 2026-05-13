@@ -93,7 +93,7 @@ Managers only manage championships they are assigned to. They can participate in
 
 ## Invitation Links
 
-Invitation links use `/invite/[token]`. A visitor must be signed in before accepting the invitation; the login and registration pages preserve the invite destination through the `next` query parameter. When accepted, the link adds the registered user to the linked championship and selects that championship for the session.
+Generated invitation links open `/register?next=/invite/[token]`. A visitor must be signed in before accepting the invitation; the login and registration pages preserve the invite destination through the `next` query parameter. When accepted, the link adds the registered user to the linked championship and selects that championship for the session.
 
 Invite tokens are stored hashed in the database. Active invitation links can be revoked from the championship management page.
 
