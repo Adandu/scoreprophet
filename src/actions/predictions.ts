@@ -3,7 +3,13 @@
 import { revalidatePath } from 'next/cache'
 import { prisma } from '@/lib/db'
 import { requireAuth } from '@/lib/auth'
-import { validatePredictionCombination, parseExactScore } from '@/lib/validation'
+import {
+  getScoreOutcome,
+  parseExactScore,
+  validateExactScoreAgainstSelections,
+  validatePredictionCombination,
+  validateSelectionsAgainstExactScore,
+} from '@/lib/validation'
 
 type PredictionType = 'SINGLE_OUTCOME' | 'DOUBLE_CHANCE' | 'EXACT_SCORE'
 
@@ -11,8 +17,14 @@ export async function savePrediction(prevState: unknown, formData: FormData) {
   const session = await requireAuth()
   const matchId = parseInt(formData.get('matchId') as string, 10)
   const type = formData.get('type') as PredictionType
-  const value = (formData.get('value') as string)?.trim()
+  let value = (formData.get('value') as string)?.trim()
   const championshipId = parseInt(formData.get('championshipId') as string, 10)
+
+  if (type === 'EXACT_SCORE' && !value) {
+    const homeScore = parseInt(String(formData.get('homeScore') ?? ''), 10)
+    const awayScore = parseInt(String(formData.get('awayScore') ?? ''), 10)
+    if (Number.isInteger(homeScore) && Number.isInteger(awayScore)) value = `${homeScore}-${awayScore}`
+  }
 
   if (!matchId || !type || !value || !championshipId) return { error: 'Missing fields' }
 
@@ -33,7 +45,7 @@ export async function savePrediction(prevState: unknown, formData: FormData) {
 
   if (type === 'EXACT_SCORE') {
     const parsed = parseExactScore(value)
-    if (!parsed) return { error: 'Invalid score format. Use e.g. 2-1' }
+    if (!parsed) return { error: 'Invalid score format. Choose scores from 0 to 10' }
   }
 
   const existing = await prisma.prediction.findMany({
@@ -44,11 +56,35 @@ export async function savePrediction(prevState: unknown, formData: FormData) {
   const validationError = validatePredictionCombination(type, existingOtherTypes)
   if (validationError) return { error: validationError }
 
-  await prisma.prediction.upsert({
-    where: { userId_matchId_type_championshipId: { userId: session.userId!, matchId, type, championshipId } },
-    update: { value },
-    create: { userId: session.userId!, matchId, type, value, championshipId },
-  })
+  if (type === 'EXACT_SCORE') {
+    const exactError = validateExactScoreAgainstSelections(parseExactScore(value)!, existingOtherTypes)
+    if (exactError) return { error: exactError }
+  } else {
+    const selectionError = validateSelectionsAgainstExactScore({ type, value }, existingOtherTypes)
+    if (selectionError) return { error: selectionError }
+  }
+
+  const operations = [
+    prisma.prediction.upsert({
+      where: { userId_matchId_type_championshipId: { userId: session.userId!, matchId, type, championshipId } },
+      update: { value },
+      create: { userId: session.userId!, matchId, type, value, championshipId },
+    }),
+  ]
+
+  if (type === 'EXACT_SCORE' && !membership.championship.doubleChanceEnabled) {
+    const parsed = parseExactScore(value)!
+    const outcome = getScoreOutcome(parsed.home, parsed.away)
+    operations.push(
+      prisma.prediction.upsert({
+        where: { userId_matchId_type_championshipId: { userId: session.userId!, matchId, type: 'SINGLE_OUTCOME', championshipId } },
+        update: { value: outcome },
+        create: { userId: session.userId!, matchId, type: 'SINGLE_OUTCOME', value: outcome, championshipId },
+      })
+    )
+  }
+
+  await prisma.$transaction(operations)
 
   revalidatePath(`/championships/${championshipId}/predictions`)
   return { success: true }

@@ -1,5 +1,12 @@
 import { describe, it, expect } from 'vitest';
-import { validatePredictionCombination, parseExactScore } from '@/lib/validation';
+import {
+  getScoreOutcome,
+  parseExactScore,
+  predictionAllowsScore,
+  validateExactScoreAgainstSelections,
+  validatePredictionCombination,
+  validateSelectionsAgainstExactScore,
+} from '@/lib/validation';
 
 type PredictionType = 'SINGLE_OUTCOME' | 'DOUBLE_CHANCE' | 'EXACT_SCORE';
 
@@ -107,8 +114,8 @@ describe('parseExactScore — valid inputs', () => {
     expect(parseExactScore('0-0')).toEqual({ home: 0, away: 0 });
   });
 
-  it('parses "15-15" (max allowed)', () => {
-    expect(parseExactScore('15-15')).toEqual({ home: 15, away: 15 });
+  it('parses "10-10" (max allowed)', () => {
+    expect(parseExactScore('10-10')).toEqual({ home: 10, away: 10 });
   });
 });
 
@@ -131,5 +138,44 @@ describe('parseExactScore — invalid inputs', () => {
 
   it('returns null for empty string', () => {
     expect(parseExactScore('')).toBeNull();
+  });
+});
+
+describe('score outcome validation', () => {
+  it('detects 1/X/2 outcomes from scores', () => {
+    expect(getScoreOutcome(2, 1)).toBe('1');
+    expect(getScoreOutcome(1, 1)).toBe('X');
+    expect(getScoreOutcome(0, 1)).toBe('2');
+  });
+
+  it('checks whether single outcome predictions allow a score', () => {
+    expect(predictionAllowsScore({ type: 'SINGLE_OUTCOME', value: '1' }, { home: 2, away: 1 })).toBe(true);
+    expect(predictionAllowsScore({ type: 'SINGLE_OUTCOME', value: '1' }, { home: 1, away: 1 })).toBe(false);
+  });
+
+  it('checks whether double chance predictions allow a score', () => {
+    expect(predictionAllowsScore({ type: 'DOUBLE_CHANCE', value: '1X' }, { home: 1, away: 1 })).toBe(true);
+    expect(predictionAllowsScore({ type: 'DOUBLE_CHANCE', value: '1X' }, { home: 0, away: 1 })).toBe(false);
+  });
+
+  it('rejects exact scores that contradict a 1/X/2 selection', () => {
+    expect(
+      validateExactScoreAgainstSelections({ home: 0, away: 1 }, [{ type: 'SINGLE_OUTCOME', value: '1' }])
+    ).toBe('Exact score must match your 1/X/2 prediction');
+  });
+
+  it('rejects exact scores that contradict double chance', () => {
+    expect(
+      validateExactScoreAgainstSelections({ home: 1, away: 1 }, [{ type: 'DOUBLE_CHANCE', value: '12' }])
+    ).toBe('Exact score must match your double chance prediction');
+  });
+
+  it('rejects result selections that contradict an existing exact score', () => {
+    expect(
+      validateSelectionsAgainstExactScore(
+        { type: 'SINGLE_OUTCOME', value: '2' },
+        [{ type: 'EXACT_SCORE', value: '2-1' }]
+      )
+    ).toBe('Match result must match your exact score');
   });
 });

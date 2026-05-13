@@ -1,12 +1,12 @@
 'use client'
 
-import { useActionState } from 'react'
+import { useActionState, useMemo, useState } from 'react'
 import Image from 'next/image'
 import { savePrediction, saveKnockoutAdvance } from '@/actions/predictions'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
 
 type PredictionType = 'SINGLE_OUTCOME' | 'DOUBLE_CHANCE' | 'EXACT_SCORE'
+type ScoreOutcome = '1' | 'X' | '2'
 
 interface ExistingPrediction {
   id: number
@@ -29,6 +29,48 @@ interface Props {
 
 const SINGLE_OPTS = ['1', 'X', '2']
 const DOUBLE_OPTS = ['1X', 'X2', '12']
+const SCORE_OPTS = Array.from({ length: 11 }, (_, i) => i)
+
+function parseScore(value?: string): { home: number; away: number } | null {
+  const match = /^(\d+)-(\d+)$/.exec(value ?? '')
+  if (!match) return null
+  return { home: parseInt(match[1], 10), away: parseInt(match[2], 10) }
+}
+
+function getScoreOutcome(home: number, away: number): ScoreOutcome {
+  if (home > away) return '1'
+  if (home < away) return '2'
+  return 'X'
+}
+
+function scoreMatchesSelection(home: number, away: number, selection?: ExistingPrediction): boolean {
+  if (!selection) return true
+  const outcome = getScoreOutcome(home, away)
+  if (selection.type === 'SINGLE_OUTCOME') return selection.value === outcome
+  if (selection.type === 'DOUBLE_CHANCE') return selection.value.includes(outcome)
+  return true
+}
+
+function getFirstAllowedScore(selection?: ExistingPrediction): { home: number; away: number } {
+  for (const home of SCORE_OPTS) {
+    for (const away of SCORE_OPTS) {
+      if (scoreMatchesSelection(home, away, selection)) return { home, away }
+    }
+  }
+  return { home: 0, away: 0 }
+}
+
+function scoreHasAllowedPair(score: number, side: 'home' | 'away', selection?: ExistingPrediction): boolean {
+  return SCORE_OPTS.some((otherScore) =>
+    side === 'home'
+      ? scoreMatchesSelection(score, otherScore, selection)
+      : scoreMatchesSelection(otherScore, score, selection)
+  )
+}
+
+function getAllowedScoresForSide(side: 'home' | 'away', selection?: ExistingPrediction): number[] {
+  return SCORE_OPTS.filter((score) => scoreHasAllowedPair(score, side, selection))
+}
 
 export function PredictionForm({
   matchId,
@@ -47,6 +89,11 @@ export function PredictionForm({
   const hasSingle = existing.some((p) => p.type === 'SINGLE_OUTCOME')
   const hasDouble = existing.some((p) => p.type === 'DOUBLE_CHANCE')
   const hasExact = existing.some((p) => p.type === 'EXACT_SCORE')
+  const exactScore = parseScore(existing.find((p) => p.type === 'EXACT_SCORE')?.value)
+  const resultSelection = existing.find((p) => p.type === 'SINGLE_OUTCOME' || p.type === 'DOUBLE_CHANCE')
+  const defaultScore = exactScore && scoreMatchesSelection(exactScore.home, exactScore.away, resultSelection)
+    ? exactScore
+    : getFirstAllowedScore(resultSelection)
 
   return (
     <div className="mt-3 space-y-3 text-center">
@@ -105,18 +152,16 @@ export function PredictionForm({
       {/* Exact Score */}
       <div>
         <p className="text-xs text-white/50 mb-1">Exact score (5 pts){hasExact && ' ✓'}</p>
-        <form action={formAction} className="flex justify-center gap-2">
-          <input type="hidden" name="matchId" value={matchId} />
-          <input type="hidden" name="championshipId" value={championshipId} />
-          <input type="hidden" name="type" value="EXACT_SCORE" />
-          <Input name="value" placeholder="e.g. 2-1"
-            defaultValue={existing.find((p) => p.type === 'EXACT_SCORE')?.value ?? ''}
-            className="w-24 bg-white/10 text-white border-white/20 text-sm h-8" />
-          <Button type="submit" size="sm" disabled={pending}
-            className={`h-8 ${hasExact ? 'bg-yellow-600' : 'bg-[#C9A84C]'} text-[#0A1628] font-semibold hover:opacity-90`}>
-            {hasExact ? 'Update' : 'Save'}
-          </Button>
-        </form>
+        <ExactScoreForm
+          matchId={matchId}
+          championshipId={championshipId}
+          defaultHomeScore={defaultScore.home}
+          defaultAwayScore={defaultScore.away}
+          resultSelection={resultSelection}
+          pending={pending}
+          formAction={formAction}
+          hasExact={hasExact}
+        />
       </div>
 
       {/* Knockout Advance */}
@@ -132,6 +177,93 @@ export function PredictionForm({
         />
       )}
     </div>
+  )
+}
+
+function ExactScoreForm({
+  matchId,
+  championshipId,
+  defaultHomeScore,
+  defaultAwayScore,
+  resultSelection,
+  pending,
+  formAction,
+  hasExact,
+}: {
+  matchId: number
+  championshipId: number
+  defaultHomeScore: number
+  defaultAwayScore: number
+  resultSelection?: ExistingPrediction
+  pending: boolean
+  formAction: (payload: FormData) => void
+  hasExact: boolean
+}) {
+  const [homeScore, setHomeScore] = useState(defaultHomeScore)
+  const [awayScore, setAwayScore] = useState(defaultAwayScore)
+
+  const homeOptions = useMemo(
+    () => getAllowedScoresForSide('home', resultSelection),
+    [resultSelection]
+  )
+  const safeHomeScore = homeOptions.includes(homeScore) ? homeScore : homeOptions[0] ?? 0
+  const awayOptions = useMemo(
+    () => SCORE_OPTS.filter((score) => scoreMatchesSelection(safeHomeScore, score, resultSelection)),
+    [safeHomeScore, resultSelection]
+  )
+  const safeAwayScore = awayOptions.includes(awayScore) ? awayScore : awayOptions[0] ?? 0
+  const activeHomeScore = scoreMatchesSelection(safeHomeScore, safeAwayScore, resultSelection)
+    ? safeHomeScore
+    : SCORE_OPTS.find((score) => scoreMatchesSelection(score, safeAwayScore, resultSelection)) ?? safeHomeScore
+  const activeAwayScore = scoreMatchesSelection(activeHomeScore, safeAwayScore, resultSelection)
+    ? safeAwayScore
+    : SCORE_OPTS.find((score) => scoreMatchesSelection(activeHomeScore, score, resultSelection)) ?? safeAwayScore
+
+  return (
+    <form action={formAction} className="flex justify-center gap-2">
+      <input type="hidden" name="matchId" value={matchId} />
+      <input type="hidden" name="championshipId" value={championshipId} />
+      <input type="hidden" name="type" value="EXACT_SCORE" />
+      <select
+        name="homeScore"
+        value={activeHomeScore}
+        onChange={(event) => {
+          const nextHomeScore = parseInt(event.target.value, 10)
+          setHomeScore(nextHomeScore)
+          if (!scoreMatchesSelection(nextHomeScore, awayScore, resultSelection)) {
+            setAwayScore(SCORE_OPTS.find((score) => scoreMatchesSelection(nextHomeScore, score, resultSelection)) ?? awayScore)
+          }
+        }}
+        className="h-8 rounded-md border border-white/20 bg-[#0A1628] px-2 text-sm text-white"
+        aria-label="Home team score"
+      >
+        {homeOptions.map((score) => (
+          <option key={score} value={score}>{score}</option>
+        ))}
+      </select>
+      <span className="flex h-8 items-center text-white/40">-</span>
+      <select
+        name="awayScore"
+        value={activeAwayScore}
+        onChange={(event) => {
+          const nextAwayScore = parseInt(event.target.value, 10)
+          setAwayScore(nextAwayScore)
+          if (!scoreMatchesSelection(activeHomeScore, nextAwayScore, resultSelection)) {
+            setHomeScore(SCORE_OPTS.find((score) => scoreMatchesSelection(score, nextAwayScore, resultSelection)) ?? activeHomeScore)
+          }
+        }}
+        className="h-8 rounded-md border border-white/20 bg-[#0A1628] px-2 text-sm text-white"
+        aria-label="Away team score"
+      >
+        {awayOptions.map((score) => (
+          <option key={score} value={score}>{score}</option>
+        ))}
+      </select>
+      <Button type="submit" size="sm" disabled={pending}
+        className={`h-8 ${hasExact ? 'bg-yellow-600' : 'bg-[#C9A84C]'} text-[#0A1628] font-semibold hover:opacity-90`}>
+        {hasExact ? 'Update' : 'Save'}
+      </Button>
+    </form>
   )
 }
 

@@ -1,6 +1,7 @@
 export type PredictionType = 'SINGLE_OUTCOME' | 'DOUBLE_CHANCE' | 'EXACT_SCORE';
 
-const MAX_GOALS_PER_TEAM = 15;
+const MAX_GOALS_PER_TEAM = 10;
+type ScoreOutcome = '1' | 'X' | '2';
 
 /**
  * Validates whether a new prediction type can be added alongside existing
@@ -70,4 +71,50 @@ export function parseExactScore(
   if (home > MAX_GOALS_PER_TEAM || away > MAX_GOALS_PER_TEAM) return null;
 
   return { home, away };
+}
+
+export function getScoreOutcome(home: number, away: number): ScoreOutcome {
+  if (home > away) return '1';
+  if (home < away) return '2';
+  return 'X';
+}
+
+export function predictionAllowsScore(
+  prediction: { type: PredictionType; value: string },
+  score: { home: number; away: number }
+): boolean {
+  const outcome = getScoreOutcome(score.home, score.away);
+
+  if (prediction.type === 'SINGLE_OUTCOME') return prediction.value === outcome;
+  if (prediction.type === 'DOUBLE_CHANCE') return prediction.value.includes(outcome);
+  return true;
+}
+
+export function validateExactScoreAgainstSelections(
+  score: { home: number; away: number },
+  existing: { type: PredictionType; value: string }[]
+): string | null {
+  const selection = existing.find((prediction) => prediction.type === 'SINGLE_OUTCOME' || prediction.type === 'DOUBLE_CHANCE');
+  if (!selection || predictionAllowsScore(selection, score)) return null;
+
+  return selection.type === 'SINGLE_OUTCOME'
+    ? 'Exact score must match your 1/X/2 prediction'
+    : 'Exact score must match your double chance prediction';
+}
+
+export function validateSelectionsAgainstExactScore(
+  incoming: { type: PredictionType; value: string },
+  existing: { type: PredictionType; value: string }[]
+): string | null {
+  if (incoming.type !== 'SINGLE_OUTCOME' && incoming.type !== 'DOUBLE_CHANCE') return null;
+
+  const exact = existing.find((prediction) => prediction.type === 'EXACT_SCORE');
+  if (!exact) return null;
+
+  const score = parseExactScore(exact.value);
+  if (!score || predictionAllowsScore(incoming, score)) return null;
+
+  return incoming.type === 'SINGLE_OUTCOME'
+    ? 'Match result must match your exact score'
+    : 'Double chance must match your exact score';
 }
