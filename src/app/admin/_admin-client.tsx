@@ -1,6 +1,6 @@
 'use client'
 
-import { useActionState } from 'react'
+import { useActionState, type FormEvent } from 'react'
 import { overrideMatchScore, recalculateAllPoints, removeUser, syncMatchesFromApi } from '@/actions/admin'
 import { createChampionship, deleteChampionship, setChampionshipManagers, setChampionshipMembers, updateChampionship } from '@/actions/championships'
 import { Button } from '@/components/ui/button'
@@ -151,6 +151,11 @@ function ChampionshipRow({ championship, users }: { championship: Championship; 
   const [membersState, membersAction, membersPending] = useActionState(setChampionshipMembers, null)
   const [managersState, managersAction, managersPending] = useActionState(setChampionshipManagers, null)
   const [deleteState, deleteAction, deletePending] = useActionState(deleteChampionship, null)
+  function confirmChampionshipDeletion(event: FormEvent<HTMLFormElement>) {
+    if (!window.confirm(`Delete ${championship.name}? This removes its memberships and cannot be undone.`)) {
+      event.preventDefault()
+    }
+  }
 
   return (
     <div className="rounded-lg border border-white/10 bg-white/5 p-4">
@@ -243,7 +248,7 @@ function ChampionshipRow({ championship, users }: { championship: Championship; 
         </div>
       </form>
 
-      <form action={deleteAction} className="mt-3">
+      <form action={deleteAction} className="mt-3" onSubmit={confirmChampionshipDeletion}>
         <input type="hidden" name="championshipId" value={championship.id} />
         <Button type="submit" size="sm" variant="outline" disabled={deletePending} className="border-red-500/30 text-red-400 hover:bg-red-500/10 bg-transparent text-xs">
           {deletePending ? 'Deleting…' : 'Delete championship'}
@@ -291,6 +296,12 @@ function MatchOverrideRow({ match, timezone }: { match: Match; timezone: string 
 
 function UserRow({ user }: { user: User }) {
   const [, formAction, pending] = useActionState(removeUser, null)
+  function confirmRemoval(event: FormEvent<HTMLFormElement>) {
+    if (!window.confirm(`Remove ${user.username}? This cannot be undone.`)) {
+      event.preventDefault()
+    }
+  }
+
   return (
     <tr className="border-b border-white/5 last:border-0">
       <td className="px-4 py-2 text-white">{user.username}</td>
@@ -303,7 +314,7 @@ function UserRow({ user }: { user: User }) {
       </td>
       <td className="px-4 py-2 text-right">
         {!user.isAdmin && (
-          <form action={formAction}>
+          <form action={formAction} onSubmit={confirmRemoval}>
             <input type="hidden" name="userId" value={user.id} />
             <Button type="submit" size="sm" variant="outline" disabled={pending}
               className="border-red-500/30 text-red-400 hover:bg-red-500/10 bg-transparent text-xs">
