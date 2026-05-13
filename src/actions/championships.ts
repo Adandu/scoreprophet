@@ -7,14 +7,11 @@ import { requireAdmin, requireAuth } from '@/lib/auth'
 import { getSession } from '@/lib/session'
 import { getAppUrl } from '@/lib/app-url'
 import { userCanManageChampionship } from '@/lib/championships'
+import { hashInviteToken } from '@/lib/invites'
 
 function parseId(value: FormDataEntryValue | null): number | null {
   const id = parseInt(String(value ?? ''), 10)
   return Number.isInteger(id) && id > 0 ? id : null
-}
-
-function hashInviteToken(token: string): string {
-  return crypto.createHash('sha256').update(token).digest('hex')
 }
 
 async function requireChampionshipEditor(championshipId: number) {
@@ -201,35 +198,6 @@ export async function revokeChampionshipInvite(prevState: unknown, formData: For
 
   revalidatePath(`/championships/${invite.championshipId}/manage`)
   return { success: true }
-}
-
-export async function acceptChampionshipInvite(token: string) {
-  const session = await requireAuth()
-  const invite = await prisma.championshipInvite.findUnique({
-    where: { tokenHash: hashInviteToken(token) },
-    include: { championship: true },
-  })
-
-  if (!invite || invite.revokedAt || (invite.expiresAt && invite.expiresAt <= new Date())) {
-    return { error: 'This invitation link is no longer valid' }
-  }
-  if (!invite.championship.isActive && !session.isAdmin) {
-    return { error: 'This championship is not active' }
-  }
-
-  await prisma.championshipMember.upsert({
-    where: { championshipId_userId: { championshipId: invite.championshipId, userId: session.userId! } },
-    update: {},
-    create: { championshipId: invite.championshipId, userId: session.userId! },
-  })
-
-  const currentSession = await getSession()
-  currentSession.selectedChampionshipId = invite.championshipId
-  await currentSession.save()
-
-  revalidatePath('/', 'layout')
-  revalidatePath(`/championships/${invite.championshipId}/leaderboard`)
-  return { success: true, championshipId: invite.championshipId, championshipName: invite.championship.name }
 }
 
 export async function selectChampionship(championshipId: number) {

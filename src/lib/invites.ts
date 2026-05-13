@@ -1,0 +1,38 @@
+import crypto from 'crypto'
+import { revalidatePath } from 'next/cache'
+import { prisma } from '@/lib/db'
+import { getSession } from '@/lib/session'
+
+export function hashInviteToken(token: string): string {
+  return crypto.createHash('sha256').update(token).digest('hex')
+}
+
+export async function acceptInviteToken(token: string) {
+  const session = await getSession()
+  if (!session.userId) return { error: 'You must be signed in to accept this invitation' }
+
+  const invite = await prisma.championshipInvite.findUnique({
+    where: { tokenHash: hashInviteToken(token) },
+    include: { championship: true },
+  })
+
+  if (!invite || invite.revokedAt || (invite.expiresAt && invite.expiresAt <= new Date())) {
+    return { error: 'This invitation link is no longer valid' }
+  }
+  if (!invite.championship.isActive && !session.isAdmin) {
+    return { error: 'This championship is not active' }
+  }
+
+  await prisma.championshipMember.upsert({
+    where: { championshipId_userId: { championshipId: invite.championshipId, userId: session.userId } },
+    update: {},
+    create: { championshipId: invite.championshipId, userId: session.userId },
+  })
+
+  session.selectedChampionshipId = invite.championshipId
+  await session.save()
+
+  revalidatePath('/', 'layout')
+  revalidatePath(`/championships/${invite.championshipId}/leaderboard`)
+  return { success: true, championshipId: invite.championshipId, championshipName: invite.championship.name }
+}
