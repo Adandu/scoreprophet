@@ -90,11 +90,24 @@ model Match {
 }
 
 model Team {
-  id         Int    @id @default(autoincrement())
-  externalId String @unique
-  name       String
-  shortName  String
-  crest      String
+  id                      Int    @id @default(autoincrement())
+  externalId              String @unique
+  name                    String
+  shortName               String
+  tla                     String @default("")
+  crest                   String
+  areaName                String @default("")
+  areaCode                String @default("")
+  address                 String @default("")
+  website                 String @default("")
+  founded                 Int?
+  clubColors              String @default("")
+  venue                   String @default("")
+  coachName               String @default("")
+  squadJson               String @default("[]")
+  staffJson               String @default("[]")
+  runningCompetitionsJson String @default("[]")
+  rawJson                 String @default("{}")
 }
 
 model Prediction {

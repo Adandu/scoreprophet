@@ -126,8 +126,25 @@ export async function syncMatchesFromApi(prevState: unknown) {
       for (const t of teams) {
         await prisma.team.upsert({
           where: { externalId: t.externalId },
-          update: { name: t.name, shortName: t.shortName, crest: t.crest },
-          create: { externalId: t.externalId, name: t.name, shortName: t.shortName, crest: t.crest },
+          update: {
+            name: t.name,
+            shortName: t.shortName,
+            tla: t.tla,
+            crest: t.crest,
+            areaName: t.areaName,
+            areaCode: t.areaCode,
+            address: t.address,
+            website: t.website,
+            founded: t.founded,
+            clubColors: t.clubColors,
+            venue: t.venue,
+            coachName: t.coachName,
+            squadJson: t.squadJson,
+            staffJson: t.staffJson,
+            runningCompetitionsJson: t.runningCompetitionsJson,
+            rawJson: t.rawJson,
+          },
+          create: t,
         })
       }
     } catch {

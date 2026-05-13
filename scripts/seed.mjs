@@ -68,7 +68,20 @@ async function fetchAllTeams() {
     externalId: String(team.id),
     name: team.name ?? '',
     shortName: team.shortName ?? team.tla ?? '',
+    tla: team.tla ?? '',
     crest: team.crest ?? '',
+    areaName: team.area?.name ?? '',
+    areaCode: team.area?.code ?? '',
+    address: team.address ?? '',
+    website: team.website ?? '',
+    founded: Number.isInteger(team.founded) ? team.founded : null,
+    clubColors: team.clubColors ?? '',
+    venue: team.venue ?? '',
+    coachName: team.coach?.name ?? '',
+    squadJson: JSON.stringify(team.squad ?? []),
+    staffJson: JSON.stringify(team.staff ?? []),
+    runningCompetitionsJson: JSON.stringify(team.runningCompetitions ?? []),
+    rawJson: JSON.stringify(team),
   }))
 }
 
@@ -97,7 +110,24 @@ async function main() {
     for (const team of teams) {
       await prisma.team.upsert({
         where: { externalId: team.externalId },
-        update: { name: team.name, shortName: team.shortName, crest: team.crest },
+        update: {
+          name: team.name,
+          shortName: team.shortName,
+          tla: team.tla,
+          crest: team.crest,
+          areaName: team.areaName,
+          areaCode: team.areaCode,
+          address: team.address,
+          website: team.website,
+          founded: team.founded,
+          clubColors: team.clubColors,
+          venue: team.venue,
+          coachName: team.coachName,
+          squadJson: team.squadJson,
+          staffJson: team.staffJson,
+          runningCompetitionsJson: team.runningCompetitionsJson,
+          rawJson: team.rawJson,
+        },
         create: team,
       })
     }

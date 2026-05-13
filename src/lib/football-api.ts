@@ -22,7 +22,20 @@ export interface NormalizedTeam {
   externalId: string
   name: string
   shortName: string
+  tla: string
   crest: string
+  areaName: string
+  areaCode: string
+  address: string
+  website: string
+  founded: number | null
+  clubColors: string
+  venue: string
+  coachName: string
+  squadJson: string
+  staffJson: string
+  runningCompetitionsJson: string
+  rawJson: string
 }
 
 export interface HeadToHeadMatch {
@@ -201,31 +214,36 @@ export async function fetchAllTeams(): Promise<NormalizedTeam[]> {
   }
   const data = await res.json()
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return (data.teams ?? []).map((t: any): NormalizedTeam => ({
-    externalId: String(t.id),
-    name: t.name ?? '',
-    shortName: t.shortName ?? t.tla ?? '',
-    crest: t.crest ?? '',
-  }))
+  return (data.teams ?? []).map((t: any): NormalizedTeam => normalizeTeam(t))
 }
 
 export async function fetchTeamById(id: string | number): Promise<NormalizedTeam> {
-  const res = await fetch(
-    `${BASE_URL}/teams/${id}`,
-    {
-      headers: getHeaders(),
-      next: { revalidate: 60 },
-    }
-  )
-  if (!res.ok) {
-    throw new Error(`football-data.org error ${res.status}: ${res.statusText}`)
-  }
-  const t = await res.json()
+  const teams = await fetchAllTeams()
+  const team = teams.find((t) => t.externalId === String(id))
+  if (!team) throw new Error(`Team ${id} not found in ${COMPETITION} teams`)
+  return team
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function normalizeTeam(t: any): NormalizedTeam {
   return {
     externalId: String(t.id),
     name: t.name ?? '',
     shortName: t.shortName ?? t.tla ?? '',
+    tla: t.tla ?? '',
     crest: t.crest ?? '',
+    areaName: t.area?.name ?? '',
+    areaCode: t.area?.code ?? '',
+    address: t.address ?? '',
+    website: t.website ?? '',
+    founded: Number.isInteger(t.founded) ? t.founded : null,
+    clubColors: t.clubColors ?? '',
+    venue: t.venue ?? '',
+    coachName: t.coach?.name ?? '',
+    squadJson: JSON.stringify(t.squad ?? []),
+    staffJson: JSON.stringify(t.staff ?? []),
+    runningCompetitionsJson: JSON.stringify(t.runningCompetitions ?? []),
+    rawJson: JSON.stringify(t),
   }
 }
 
