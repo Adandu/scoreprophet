@@ -160,7 +160,7 @@ export function PredictionForm({
           resultSelection={resultSelection}
           pending={pending}
           formAction={formAction}
-          hasExact={hasExact}
+          exactScore={exactScore}
         />
       </div>
 
@@ -188,7 +188,7 @@ function ExactScoreForm({
   resultSelection,
   pending,
   formAction,
-  hasExact,
+  exactScore,
 }: {
   matchId: number
   championshipId: number
@@ -197,8 +197,9 @@ function ExactScoreForm({
   resultSelection?: ExistingPrediction
   pending: boolean
   formAction: (payload: FormData) => void
-  hasExact: boolean
+  exactScore: { home: number; away: number } | null
 }) {
+  const [isEditing, setIsEditing] = useState(!exactScore)
   const [homeScore, setHomeScore] = useState(defaultHomeScore)
   const [awayScore, setAwayScore] = useState(defaultAwayScore)
 
@@ -218,6 +219,25 @@ function ExactScoreForm({
   const activeAwayScore = scoreMatchesSelection(activeHomeScore, safeAwayScore, resultSelection)
     ? safeAwayScore
     : SCORE_OPTS.find((score) => scoreMatchesSelection(activeHomeScore, score, resultSelection)) ?? safeAwayScore
+
+  if (exactScore && !isEditing) {
+    return (
+      <div className="flex items-center justify-center gap-2">
+        <span className="inline-flex h-8 items-center rounded-md border border-yellow-500/30 bg-yellow-500/10 px-3 text-sm font-semibold text-yellow-200">
+          {exactScore.home} - {exactScore.away}
+        </span>
+        <Button
+          type="button"
+          size="sm"
+          variant="outline"
+          className="h-8 border-white/20 text-white/70 bg-transparent hover:bg-white/10"
+          onClick={() => setIsEditing(true)}
+        >
+          Edit
+        </Button>
+      </div>
+    )
+  }
 
   return (
     <form action={formAction} className="flex justify-center gap-2">
@@ -260,9 +280,24 @@ function ExactScoreForm({
         ))}
       </select>
       <Button type="submit" size="sm" disabled={pending}
-        className={`h-8 ${hasExact ? 'bg-yellow-600' : 'bg-[#C9A84C]'} text-[#0A1628] font-semibold hover:opacity-90`}>
-        {hasExact ? 'Update' : 'Save'}
+        className={`h-8 ${exactScore ? 'bg-yellow-600' : 'bg-[#C9A84C]'} text-[#0A1628] font-semibold hover:opacity-90`}>
+        {exactScore ? 'Update' : 'Save'}
       </Button>
+      {exactScore && (
+        <Button
+          type="button"
+          size="sm"
+          variant="outline"
+          className="h-8 border-white/20 text-white/70 bg-transparent hover:bg-white/10"
+          onClick={() => {
+            setHomeScore(exactScore.home)
+            setAwayScore(exactScore.away)
+            setIsEditing(false)
+          }}
+        >
+          Cancel
+        </Button>
+      )}
     </form>
   )
 }
