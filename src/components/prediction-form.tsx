@@ -1,6 +1,6 @@
 'use client'
 
-import { useActionState, useMemo, useState } from 'react'
+import { useActionState, useEffect, useMemo, useState } from 'react'
 import Image from 'next/image'
 import { savePrediction, saveKnockoutAdvance } from '@/actions/predictions'
 import { Button } from '@/components/ui/button'
@@ -89,7 +89,8 @@ export function PredictionForm({
   const hasSingle = existing.some((p) => p.type === 'SINGLE_OUTCOME')
   const hasDouble = existing.some((p) => p.type === 'DOUBLE_CHANCE')
   const hasExact = existing.some((p) => p.type === 'EXACT_SCORE')
-  const exactScore = parseScore(existing.find((p) => p.type === 'EXACT_SCORE')?.value)
+  const exactScoreValue = existing.find((p) => p.type === 'EXACT_SCORE')?.value
+  const exactScore = parseScore(exactScoreValue)
   const resultSelection = existing.find((p) => p.type === 'SINGLE_OUTCOME' || p.type === 'DOUBLE_CHANCE')
   const defaultScore = exactScore && scoreMatchesSelection(exactScore.home, exactScore.away, resultSelection)
     ? exactScore
@@ -158,8 +159,7 @@ export function PredictionForm({
           defaultHomeScore={defaultScore.home}
           defaultAwayScore={defaultScore.away}
           resultSelection={resultSelection}
-          pending={pending}
-          formAction={formAction}
+          exactScoreValue={exactScoreValue}
           exactScore={exactScore}
         />
       </div>
@@ -186,8 +186,7 @@ function ExactScoreForm({
   defaultHomeScore,
   defaultAwayScore,
   resultSelection,
-  pending,
-  formAction,
+  exactScoreValue,
   exactScore,
 }: {
   matchId: number
@@ -195,13 +194,26 @@ function ExactScoreForm({
   defaultHomeScore: number
   defaultAwayScore: number
   resultSelection?: ExistingPrediction
-  pending: boolean
-  formAction: (payload: FormData) => void
+  exactScoreValue?: string
   exactScore: { home: number; away: number } | null
 }) {
+  const [state, formAction, pending] = useActionState(savePrediction, null)
+  const [savedScore, setSavedScore] = useState(exactScore)
   const [isEditing, setIsEditing] = useState(!exactScore)
   const [homeScore, setHomeScore] = useState(defaultHomeScore)
   const [awayScore, setAwayScore] = useState(defaultAwayScore)
+
+  useEffect(() => {
+    const nextScore = parseScore(exactScoreValue)
+    setSavedScore(nextScore)
+    setIsEditing(!nextScore)
+    setHomeScore(defaultHomeScore)
+    setAwayScore(defaultAwayScore)
+  }, [defaultAwayScore, defaultHomeScore, exactScoreValue])
+
+  useEffect(() => {
+    if (state?.error) setIsEditing(true)
+  }, [state])
 
   const homeOptions = useMemo(
     () => getAllowedScoresForSide('home', resultSelection),
@@ -220,27 +232,37 @@ function ExactScoreForm({
     ? safeAwayScore
     : SCORE_OPTS.find((score) => scoreMatchesSelection(activeHomeScore, score, resultSelection)) ?? safeAwayScore
 
-  if (exactScore && !isEditing) {
+  if (savedScore && !isEditing) {
     return (
-      <div className="flex items-center justify-center gap-2">
-        <span className="inline-flex h-8 items-center rounded-md border border-yellow-500/30 bg-yellow-500/10 px-3 text-sm font-semibold text-yellow-200">
-          {exactScore.home} - {exactScore.away}
-        </span>
-        <Button
-          type="button"
-          size="sm"
-          variant="outline"
-          className="h-8 border-white/20 text-white/70 bg-transparent hover:bg-white/10"
-          onClick={() => setIsEditing(true)}
-        >
-          Edit
-        </Button>
-      </div>
+      <>
+        <div className="flex items-center justify-center gap-2">
+          <span className="inline-flex h-8 items-center rounded-md border border-yellow-500/30 bg-yellow-500/10 px-3 text-sm font-semibold text-yellow-200">
+            {savedScore.home} - {savedScore.away}
+          </span>
+          <Button
+            type="button"
+            size="sm"
+            variant="outline"
+            className="h-8 border-white/20 text-white/70 bg-transparent hover:bg-white/10"
+            onClick={() => setIsEditing(true)}
+          >
+            Edit
+          </Button>
+        </div>
+        {state?.error && <p className="mt-1 text-xs text-red-400">{state.error}</p>}
+      </>
     )
   }
 
   return (
-    <form action={formAction} className="flex justify-center gap-2">
+    <form
+      action={formAction}
+      className="flex justify-center gap-2"
+      onSubmit={() => {
+        setSavedScore({ home: activeHomeScore, away: activeAwayScore })
+        setIsEditing(false)
+      }}
+    >
       <input type="hidden" name="matchId" value={matchId} />
       <input type="hidden" name="championshipId" value={championshipId} />
       <input type="hidden" name="type" value="EXACT_SCORE" />
@@ -280,24 +302,25 @@ function ExactScoreForm({
         ))}
       </select>
       <Button type="submit" size="sm" disabled={pending}
-        className={`h-8 ${exactScore ? 'bg-yellow-600' : 'bg-[#C9A84C]'} text-[#0A1628] font-semibold hover:opacity-90`}>
-        {exactScore ? 'Update' : 'Save'}
+        className={`h-8 ${savedScore ? 'bg-yellow-600' : 'bg-[#C9A84C]'} text-[#0A1628] font-semibold hover:opacity-90`}>
+        {savedScore ? 'Update' : 'Save'}
       </Button>
-      {exactScore && (
+      {savedScore && (
         <Button
           type="button"
           size="sm"
           variant="outline"
           className="h-8 border-white/20 text-white/70 bg-transparent hover:bg-white/10"
           onClick={() => {
-            setHomeScore(exactScore.home)
-            setAwayScore(exactScore.away)
+            setHomeScore(savedScore.home)
+            setAwayScore(savedScore.away)
             setIsEditing(false)
           }}
         >
           Cancel
         </Button>
       )}
+      {state?.error && <p className="self-center text-xs text-red-400">{state.error}</p>}
     </form>
   )
 }

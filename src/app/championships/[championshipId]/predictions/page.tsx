@@ -71,11 +71,20 @@ export default async function ChampionshipPredictionsPage({ params }: { params: 
                 const visibleExisting = championship.doubleChanceEnabled
                   ? existing
                   : existing.filter((p) => p.type !== 'DOUBLE_CHANCE')
+                const hasResultPrediction = visibleExisting.some((p) => p.type === 'SINGLE_OUTCOME' || p.type === 'DOUBLE_CHANCE')
+                const hasExactPrediction = visibleExisting.some((p) => p.type === 'EXACT_SCORE')
+                const hasAdvancePrediction = match.stage === 'GROUP' || Boolean(advanceByMatch[match.id])
+                const predictionsSet = hasResultPrediction && hasExactPrediction && hasAdvancePrediction
                 return (
                   <div key={match.id} className={`rounded-xl border p-4 ${locked ? 'border-white/5 bg-white/3 opacity-60' : 'border-white/10 bg-white/5'}`}>
                     <div className="flex items-center justify-between mb-2">
                       <span className="text-xs text-white/40">{formatMatchTime(match.kickoff, timezone)}</span>
-                      {locked && <Badge variant="outline" className="text-xs border-white/20 text-white/40">Locked</Badge>}
+                      <div className="flex flex-wrap items-center justify-end gap-2">
+                        <span className={predictionsSet ? 'text-xs font-semibold text-green-400' : 'text-xs font-semibold text-orange-400'}>
+                          {predictionsSet ? 'Predictions set' : 'Predictions not set'}
+                        </span>
+                        {locked && <Badge variant="outline" className="text-xs border-white/20 text-white/40">Locked</Badge>}
+                      </div>
                     </div>
                     <div className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-3 font-semibold text-white">
                       <TeamLabel name={match.homeTeam} crest={match.homeTeamCrest} align="right" />
