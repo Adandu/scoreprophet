@@ -71,22 +71,26 @@ model ChampionshipInvite {
 }
 
 model Match {
-  id            Int               @id @default(autoincrement())
-  externalId    String            @unique
-  homeTeam      String
-  awayTeam      String
-  homeTeamCrest String            @default("")
-  awayTeamCrest String            @default("")
-  stage         Stage
-  group         String?
-  kickoff       DateTime
-  status        MatchStatus       @default(SCHEDULED)
-  homeScore     Int?
-  awayScore     Int?
-  winnerTeam    String?
-  adminOverride Boolean           @default(false)
-  predictions   Prediction[]
-  advances      KnockoutAdvance[]
+  id                         Int               @id @default(autoincrement())
+  externalId                 String            @unique
+  homeTeam                   String
+  awayTeam                   String
+  homeTeamCrest              String            @default("")
+  awayTeamCrest              String            @default("")
+  stage                      Stage
+  group                      String?
+  kickoff                    DateTime
+  status                     MatchStatus       @default(SCHEDULED)
+  homeScore                  Int?
+  awayScore                  Int?
+  winnerTeam                 String?
+  adminOverride              Boolean           @default(false)
+  headToHeadHomeTeamId       String?
+  headToHeadAwayTeamId       String?
+  headToHeadJson             String            @default("[]")
+  headToHeadSyncedAt         DateTime?
+  predictions                Prediction[]
+  advances                   KnockoutAdvance[]
 }
 
 model Team {

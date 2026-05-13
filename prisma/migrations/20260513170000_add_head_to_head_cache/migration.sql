@@ -1,0 +1,4 @@
+ALTER TABLE "Match" ADD COLUMN "headToHeadHomeTeamId" TEXT;
+ALTER TABLE "Match" ADD COLUMN "headToHeadAwayTeamId" TEXT;
+ALTER TABLE "Match" ADD COLUMN "headToHeadJson" TEXT NOT NULL DEFAULT '[]';
+ALTER TABLE "Match" ADD COLUMN "headToHeadSyncedAt" DATETIME;

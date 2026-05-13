@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge'
 import { formatMatchTime } from '@/lib/format-date'
 import { ChampionshipPageNav } from '@/components/championship-page-nav'
 import Image from 'next/image'
+import { CalendarClock } from 'lucide-react'
 
 type Stage = 'GROUP' | 'ROUND_OF_32' | 'ROUND_OF_16' | 'QUARTER_FINAL' | 'SEMI_FINAL' | 'THIRD_PLACE' | 'FINAL'
 
@@ -76,9 +77,12 @@ export default async function ChampionshipPredictionsPage({ params }: { params: 
                 const hasAdvancePrediction = match.stage === 'GROUP' || Boolean(advanceByMatch[match.id])
                 const predictionsSet = hasResultPrediction && hasExactPrediction && hasAdvancePrediction
                 return (
-                  <div key={match.id} className={`rounded-xl border p-4 ${locked ? 'border-white/5 bg-white/3 opacity-60' : 'border-white/10 bg-white/5'}`}>
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-xs text-white/40">{formatMatchTime(match.kickoff, timezone)}</span>
+                  <div key={match.id} className={`rounded-xl border p-4 ${locked ? 'border-white/5 bg-white/[0.03]' : 'border-white/10 bg-white/5'}`}>
+                    <div className="mb-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                      <span className="inline-flex w-fit items-center gap-2 rounded-md border border-[#C9A84C]/35 bg-[#C9A84C]/10 px-3 py-1.5 text-sm font-semibold text-[#F2D27A] shadow-sm shadow-black/20">
+                        <CalendarClock className="h-4 w-4" aria-hidden="true" />
+                        <span className="tabular-nums">{formatMatchTime(match.kickoff, timezone)}</span>
+                      </span>
                       <div className="flex flex-wrap items-center justify-end gap-2">
                         <span className={predictionsSet ? 'text-xs font-semibold text-green-400' : 'text-xs font-semibold text-orange-400'}>
                           {predictionsSet ? 'Predictions set' : 'Predictions not set'}

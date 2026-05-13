@@ -3,7 +3,6 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { prisma } from '@/lib/db'
 import { requireAuth } from '@/lib/auth'
-import { fetchTeamById } from '@/lib/football-api'
 
 export const revalidate = 300
 
@@ -56,14 +55,7 @@ interface ApiCompetition {
 export default async function TeamDetailPage({ params }: Props) {
   await requireAuth()
   const { teamId } = await params
-  let team: DisplayTeam | null = await prisma.team.findUnique({ where: { externalId: teamId } })
-  if (!team) {
-    try {
-      team = await fetchTeamById(teamId)
-    } catch {
-      notFound()
-    }
-  }
+  const team: DisplayTeam | null = await prisma.team.findUnique({ where: { externalId: teamId } })
   if (!team) notFound()
 
   const squad = parseJson<ApiPerson[]>(team.squadJson, [])

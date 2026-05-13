@@ -38,6 +38,7 @@ COPY --from=builder /app/prisma.config.ts ./prisma.config.ts
 COPY --from=prod-deps /app/node_modules ./node_modules
 
 COPY --from=builder /app/scripts/seed.mjs ./scripts/seed.mjs
+COPY --from=builder /app/scripts/sync-head-to-head.mjs ./scripts/sync-head-to-head.mjs
 
 COPY entrypoint.sh ./
 RUN chmod +x entrypoint.sh

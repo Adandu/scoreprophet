@@ -7,5 +7,13 @@ node node_modules/prisma/build/index.js migrate deploy
 echo "[startup] Syncing match data from API..."
 node scripts/seed.mjs || echo "[startup] Seed skipped (API unavailable)"
 
+echo "[startup] Starting head-to-head sync loop..."
+(
+  while true; do
+    sleep 60
+    node scripts/sync-head-to-head.mjs || echo "[head-to-head-sync] Sync skipped (API unavailable)"
+  done
+) &
+
 echo "[startup] Starting Next.js server..."
 exec node server.js

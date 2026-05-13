@@ -83,7 +83,7 @@ export async function removeUser(prevState: unknown, formData: FormData) {
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 export async function syncMatchesFromApi(prevState: unknown) {
   await requireAdmin()
-  const { fetchAllMatches } = await import('@/lib/football-api')
+  const { fetchAllMatches, fetchHeadToHead } = await import('@/lib/football-api')
   try {
     const matches = await fetchAllMatches()
     let synced = 0
@@ -116,6 +116,21 @@ export async function syncMatchesFromApi(prevState: unknown) {
           awayScore: m.awayScore,
         },
       })
+
+      try {
+        const headToHead = await fetchHeadToHead(m.externalId, 10)
+        await prisma.match.update({
+          where: { externalId: m.externalId },
+          data: {
+            headToHeadHomeTeamId: headToHead.homeTeamId,
+            headToHeadAwayTeamId: headToHead.awayTeamId,
+            headToHeadJson: JSON.stringify(headToHead.matches),
+            headToHeadSyncedAt: new Date(),
+          },
+        })
+      } catch {
+        // Head-to-head data is supplementary; keep match sync usable if it is unavailable.
+      }
       synced++
     }
 

@@ -1,6 +1,6 @@
 import { PrismaClient } from '@prisma/client'
 import { PrismaBetterSqlite3 } from '@prisma/adapter-better-sqlite3'
-import { fetchAllMatches, fetchAllTeams } from '../src/lib/football-api'
+import { fetchAllMatches, fetchAllTeams, fetchHeadToHead } from '../src/lib/football-api'
 
 import { config } from 'dotenv'
 config()
@@ -48,6 +48,21 @@ async function main() {
         awayScore: m.awayScore,
       },
     })
+
+    try {
+      const headToHead = await fetchHeadToHead(m.externalId, 10)
+      await prisma.match.update({
+        where: { externalId: m.externalId },
+        data: {
+          headToHeadHomeTeamId: headToHead.homeTeamId,
+          headToHeadAwayTeamId: headToHead.awayTeamId,
+          headToHeadJson: JSON.stringify(headToHead.matches),
+          headToHeadSyncedAt: new Date(),
+        },
+      })
+    } catch (err) {
+      console.warn(`[seed] Head-to-head sync failed for match ${m.externalId}:`, err)
+    }
   }
   console.log(`[seed] Synced ${matches.length} matches.`)
 
