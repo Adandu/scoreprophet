@@ -3,49 +3,15 @@ export interface FormationPosition {
   top: number   // percentage 0–100
 }
 
-const TEAM_COLORS: Record<string, string> = {
-  'Brazil': '#009c3b',
-  'France': '#002395',
-  'Germany': '#d00000',
-  'Argentina': '#74acdf',
-  'Spain': '#c60b1e',
-  'England': '#cf081f',
-  'Portugal': '#006600',
-  'Netherlands': '#ff6600',
-  'Italy': '#0066cc',
-  'Belgium': '#cc0000',
-  'Croatia': '#cc2222',
-  'Morocco': '#c1272d',
-  'USA': '#b22234',
-  'Mexico': '#006847',
-  'Japan': '#bc002d',
-  'Senegal': '#00853f',
-  'Uruguay': '#5EB6E4',
-  'Colombia': '#FCD116',
-  'Switzerland': '#FF0000',
-  'Denmark': '#C60C30',
-  'Serbia': '#C6363C',
-  'Poland': '#DC143C',
-  'Australia': '#FFCD00',
-  'Ecuador': '#FFD100',
-  'Ghana': '#006B3F',
-  'Cameroon': '#007A5E',
-  'Tunisia': '#E70013',
-  'Saudi Arabia': '#006C35',
-  'IR Iran': '#239F40',
-  'South Korea': '#003478',
-  'Qatar': '#8D1B3D',
-  'Canada': '#FF0000',
-}
-
 const FALLBACK_PALETTE = [
   '#8b5cf6', '#ec4899', '#f59e0b', '#14b8a6',
   '#f97316', '#06b6d4', '#84cc16', '#a855f7',
 ]
 
-export function getTeamColor(teamName: string, teamId: string): string {
-  if (TEAM_COLORS[teamName]) return TEAM_COLORS[teamName]
-  const idx = Math.abs(parseInt(teamId, 10) || 0) % FALLBACK_PALETTE.length
+export function getTeamColor(teamId: string, crestUrl = ''): string {
+  const source = `${teamId}:${crestUrl}`
+  const hash = Array.from(source).reduce((acc, char) => ((acc << 5) - acc + char.charCodeAt(0)) | 0, 0)
+  const idx = Math.abs(hash) % FALLBACK_PALETTE.length
   return FALLBACK_PALETTE[idx]
 }
 

@@ -104,8 +104,8 @@ function PlayerDot({ name, shirtNumber, isGk, gradientId, left, top, goalCount, 
 }
 
 export function PitchFormation({ homeTeam, awayTeam, goals, bookings, substitutions, referee, homePossession }: Props) {
-  const homeColor = getTeamColor(homeTeam.name, homeTeam.id)
-  const awayColor = getTeamColor(awayTeam.name, awayTeam.id)
+  const homeColor = getTeamColor(homeTeam.id, homeTeam.crest)
+  const awayColor = getTeamColor(awayTeam.id, awayTeam.crest)
   const homeGradId = `live-home-${homeTeam.id}`
   const awayGradId = `live-away-${awayTeam.id}`
 

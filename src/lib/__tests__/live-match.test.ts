@@ -39,18 +39,14 @@ describe('computeFormationPositions', () => {
 })
 
 describe('getTeamColor', () => {
-  it('returns the known color for Brazil', () => {
-    expect(getTeamColor('Brazil', '759')).toBe('#009c3b')
-  })
-
-  it('returns the known color for France', () => {
-    expect(getTeamColor('France', '773')).toBe('#002395')
-  })
-
-  it('returns a consistent fallback color for unknown teams', () => {
-    const color1 = getTeamColor('Unknown FC', '9999')
-    const color2 = getTeamColor('Unknown FC', '9999')
+  it('returns a consistent color from API identifiers', () => {
+    const color1 = getTeamColor('9999', 'https://crests.football-data.org/9999.svg')
+    const color2 = getTeamColor('9999', 'https://crests.football-data.org/9999.svg')
     expect(color1).toBe(color2)
     expect(color1).toMatch(/^#[0-9a-f]{6}$/i)
+  })
+
+  it('does not depend on hardcoded team names', () => {
+    expect(getTeamColor('759', 'https://crests.football-data.org/759.svg')).toMatch(/^#[0-9a-f]{6}$/i)
   })
 })
