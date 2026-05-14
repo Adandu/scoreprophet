@@ -5,6 +5,8 @@ const BASE_URL = 'https://api.football-data.org/v4'
 const dbUrl = (process.env.DATABASE_URL ?? 'file:./dev.db').replace(/^file:/, '')
 const adapter = new PrismaBetterSqlite3({ url: dbUrl })
 const prisma = new PrismaClient({ adapter })
+const RECENT_FINISHED_MS = 3 * 24 * 60 * 60 * 1000
+const MAX_MATCHES_PER_RUN = 4
 
 function getHeaders() {
   return {
@@ -15,7 +17,9 @@ function getHeaders() {
 async function fetchMatchDetails(matchId) {
   const res = await fetch(`${BASE_URL}/matches/${matchId}`, { headers: getHeaders() })
   if (!res.ok) {
-    throw new Error(`football-data.org error ${res.status}: ${res.statusText}`)
+    const err = new Error(`football-data.org error ${res.status}: ${res.statusText}`)
+    err.status = res.status
+    throw err
   }
   return res.json()
 }
@@ -74,9 +78,16 @@ async function replaceMatchStatistics(match, details) {
 }
 
 async function main() {
+  const recentCutoff = new Date(Date.now() - RECENT_FINISHED_MS)
   const matches = await prisma.match.findMany({
-    where: { status: { in: ['LIVE', 'FINISHED'] } },
+    where: {
+      OR: [
+        { status: 'LIVE' },
+        { status: 'FINISHED', kickoff: { gte: recentCutoff } },
+      ],
+    },
     orderBy: { kickoff: 'desc' },
+    take: MAX_MATCHES_PER_RUN,
   })
 
   let synced = 0
@@ -86,7 +97,11 @@ async function main() {
       await replaceMatchStatistics(match, details)
       synced++
     } catch (err) {
-      console.warn(`[match-statistics] Failed for match ${match.externalId}:`, err)
+      if (err?.status === 429 || String(err).includes('error 429')) {
+        console.warn(`[match-statistics] Rate limited by football-data.org while syncing match ${match.externalId}; stopping this cycle.`)
+        break
+      }
+      console.warn(`[match-statistics] Failed for match ${match.externalId}: ${err?.message ?? err}`)
     }
   }
 

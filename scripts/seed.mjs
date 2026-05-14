@@ -85,23 +85,6 @@ async function fetchAllTeams() {
   }))
 }
 
-async function fetchHeadToHead(matchId, limit = 10) {
-  const data = await fetchJson(`/matches/${matchId}/head2head?limit=${limit}`)
-  return {
-    homeTeamId: data.aggregates?.homeTeam?.id ? String(data.aggregates.homeTeam.id) : null,
-    awayTeamId: data.aggregates?.awayTeam?.id ? String(data.aggregates.awayTeam.id) : null,
-    matches: (data.matches ?? []).map((match) => ({
-      id: String(match.id),
-      utcDate: match.utcDate,
-      competition: match.competition?.name ?? '',
-      homeTeam: match.homeTeam?.name ?? 'TBD',
-      awayTeam: match.awayTeam?.name ?? 'TBD',
-      homeScore: match.score?.fullTime?.home ?? null,
-      awayScore: match.score?.fullTime?.away ?? null,
-    })),
-  }
-}
-
 async function main() {
   console.log('[seed] Syncing WC2026 matches from football-data.org...')
   let matches
@@ -118,21 +101,6 @@ async function main() {
       update: match,
       create: match,
     })
-
-    try {
-      const headToHead = await fetchHeadToHead(match.externalId, 10)
-      await prisma.match.update({
-        where: { externalId: match.externalId },
-        data: {
-          headToHeadHomeTeamId: headToHead.homeTeamId,
-          headToHeadAwayTeamId: headToHead.awayTeamId,
-          headToHeadJson: JSON.stringify(headToHead.matches),
-          headToHeadSyncedAt: new Date(),
-        },
-      })
-    } catch (err) {
-      console.warn(`[seed] Head-to-head sync failed for match ${match.externalId}:`, err)
-    }
   }
   console.log(`[seed] Synced ${matches.length} matches.`)
 

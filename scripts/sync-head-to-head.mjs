@@ -6,6 +6,7 @@ const BASE_URL = 'https://api.football-data.org/v4'
 const dbUrl = (process.env.DATABASE_URL ?? 'file:./dev.db').replace(/^file:/, '')
 const adapter = new PrismaBetterSqlite3({ url: dbUrl })
 const prisma = new PrismaClient({ adapter })
+const FRESH_SYNC_MS = 6 * 60 * 60 * 1000
 
 function getHeaders() {
   return {
@@ -18,7 +19,9 @@ async function fetchHeadToHead(matchId, limit = 10) {
     headers: getHeaders(),
   })
   if (!res.ok) {
-    throw new Error(`football-data.org error ${res.status}: ${res.statusText}`)
+    const err = new Error(`football-data.org error ${res.status}: ${res.statusText}`)
+    err.status = res.status
+    throw err
   }
 
   const data = await res.json()
@@ -64,6 +67,10 @@ async function main() {
   let synced = 0
 
   for (const match of matches) {
+    if (match.headToHeadSyncedAt && Date.now() - match.headToHeadSyncedAt.getTime() < FRESH_SYNC_MS) {
+      continue
+    }
+
     try {
       const headToHead = await fetchHeadToHead(match.externalId, 10)
       await prisma.match.update({
@@ -77,7 +84,11 @@ async function main() {
       })
       synced++
     } catch (err) {
-      console.warn(`[head-to-head-sync] Failed for match ${match.externalId}:`, err)
+      if (err?.status === 429 || String(err).includes('error 429')) {
+        console.warn(`[head-to-head-sync] Rate limited by football-data.org while syncing match ${match.externalId}; stopping this cycle.`)
+        break
+      }
+      console.warn(`[head-to-head-sync] Failed for match ${match.externalId}: ${err?.message ?? err}`)
     }
   }
 
