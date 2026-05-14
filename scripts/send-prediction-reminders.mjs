@@ -49,7 +49,8 @@ function crestCell(url, teamName) {
   const fallback = `<table cellpadding="0" cellspacing="0" border="0" style="margin:0 auto 10px;"><tr>
     <td width="56" height="56" align="center" valign="middle" style="background:rgba(255,255,255,0.08);border-radius:8px;font-size:16px;font-weight:700;color:rgba(255,255,255,0.55);letter-spacing:0.04em;">${initials}</td>
   </tr></table>`
-  if (!url || !url.startsWith('http')) return fallback
+  // SVG is not supported in <img> tags by most email clients — use initials instead
+  if (!url || !url.startsWith('http') || url.toLowerCase().endsWith('.svg')) return fallback
   return `<img src="${escapeHtml(url)}" width="56" height="56" alt="${escapeHtml(teamName)}" style="display:block;margin:0 auto 10px;max-width:56px;height:56px;object-fit:contain;">`
 }
 
