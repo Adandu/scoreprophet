@@ -36,6 +36,9 @@ type SquadPerson = {
   dateOfBirth?: string
 }
 
+const MIN_PLAYER_AGE = 15
+const MAX_PLAYER_AGE = 60
+
 export default async function TournamentStatisticsPage() {
   await requireAuth()
 
@@ -308,11 +311,26 @@ function getAgeExtreme(teams: TeamWithSquad[], mode: 'youngest' | 'oldest') {
     name: person.name ?? ([person.firstName, person.lastName].filter(Boolean).join(' ') || 'Unknown'),
     dateOfBirth: person.dateOfBirth ?? '',
     teamName: team.name,
-  }))).filter((person) => person.dateOfBirth)
+  }))).filter((person) => isPlausiblePlayerBirthdate(person.dateOfBirth))
   return players.sort((a, b) => mode === 'youngest'
     ? b.dateOfBirth.localeCompare(a.dateOfBirth)
     : a.dateOfBirth.localeCompare(b.dateOfBirth)
   )[0] ?? null
+}
+
+function isPlausiblePlayerBirthdate(value: string): boolean {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return false
+  const birthdate = new Date(`${value}T00:00:00.000Z`)
+  if (Number.isNaN(birthdate.getTime())) return false
+
+  const today = new Date()
+  const age = today.getUTCFullYear() - birthdate.getUTCFullYear()
+    - (today.getUTCMonth() < birthdate.getUTCMonth() ||
+      (today.getUTCMonth() === birthdate.getUTCMonth() && today.getUTCDate() < birthdate.getUTCDate())
+      ? 1
+      : 0)
+
+  return age >= MIN_PLAYER_AGE && age <= MAX_PLAYER_AGE
 }
 
 function parseJson<T>(value: string, fallback: T): T {
