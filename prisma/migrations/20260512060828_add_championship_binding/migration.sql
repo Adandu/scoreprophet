@@ -5,6 +5,20 @@
   - Added the required column `championshipId` to the `Prediction` table without a default value. This is not possible if the table is not empty.
 
 */
+-- Fresh databases reach this migration before the original championship creation
+-- migration. Create the base table when it does not exist so the redefinition
+-- below can add doubleChanceEnabled and preserve older database paths.
+CREATE TABLE IF NOT EXISTS "Championship" (
+    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    "name" TEXT NOT NULL,
+    "description" TEXT NOT NULL DEFAULT '',
+    "isActive" BOOLEAN NOT NULL DEFAULT true,
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" DATETIME NOT NULL
+);
+
+CREATE UNIQUE INDEX IF NOT EXISTS "Championship_name_key" ON "Championship"("name");
+
 -- RedefineTables
 PRAGMA defer_foreign_keys=ON;
 PRAGMA foreign_keys=OFF;

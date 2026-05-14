@@ -1,5 +1,5 @@
 -- CreateTable
-CREATE TABLE "Championship" (
+CREATE TABLE IF NOT EXISTS "Championship" (
     "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
     "name" TEXT NOT NULL,
     "description" TEXT NOT NULL DEFAULT '',
@@ -9,7 +9,7 @@ CREATE TABLE "Championship" (
 );
 
 -- CreateTable
-CREATE TABLE "ChampionshipMember" (
+CREATE TABLE IF NOT EXISTS "ChampionshipMember" (
     "championshipId" INTEGER NOT NULL,
     "userId" INTEGER NOT NULL,
     "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -20,4 +20,4 @@ CREATE TABLE "ChampionshipMember" (
 );
 
 -- CreateIndex
-CREATE UNIQUE INDEX "Championship_name_key" ON "Championship"("name");
+CREATE UNIQUE INDEX IF NOT EXISTS "Championship_name_key" ON "Championship"("name");
