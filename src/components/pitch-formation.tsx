@@ -1,5 +1,5 @@
 import type { LiveTeam, LiveMatchEvent, LiveMatchBooking, LiveMatchSubstitution } from '@/lib/football-api'
-import { computeFormationPositions, getTeamColor } from '@/lib/live-match'
+import { computeFormationPositions, resolveMatchColors } from '@/lib/live-match'
 
 interface Props {
   homeTeam: LiveTeam
@@ -104,8 +104,7 @@ function PlayerDot({ name, shirtNumber, isGk, gradientId, left, top, goalCount, 
 }
 
 export function PitchFormation({ homeTeam, awayTeam, goals, bookings, substitutions, referee, homePossession }: Props) {
-  const homeColor = getTeamColor(homeTeam.id, homeTeam.crest, homeTeam.clubColors)
-  const awayColor = getTeamColor(awayTeam.id, awayTeam.crest, awayTeam.clubColors)
+  const { homeColor, awayColor } = resolveMatchColors(homeTeam, awayTeam)
   const homeGradId = `live-home-${homeTeam.id}`
   const awayGradId = `live-away-${awayTeam.id}`
 
