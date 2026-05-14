@@ -40,11 +40,17 @@ function escapeHtml(value) {
     .replace(/"/g, '&quot;')
 }
 
-function crestImg(url, alt) {
-  if (!url || !url.startsWith('http')) {
-    return '<div style="width:48px;height:48px;background:rgba(255,255,255,0.08);border-radius:4px;margin:0 auto 8px;"></div>'
-  }
-  return `<img src="${escapeHtml(url)}" width="48" height="48" alt="${escapeHtml(alt)}" style="display:block;margin:0 auto 8px;max-width:48px;height:48px;object-fit:contain;">`
+function teamInitials(name) {
+  return name.split(/\s+/).map(w => w[0] ?? '').join('').slice(0, 3).toUpperCase()
+}
+
+function crestCell(url, teamName) {
+  const initials = escapeHtml(teamInitials(teamName))
+  const fallback = `<table cellpadding="0" cellspacing="0" border="0" style="margin:0 auto 10px;"><tr>
+    <td width="56" height="56" align="center" valign="middle" style="background:rgba(255,255,255,0.08);border-radius:8px;font-size:16px;font-weight:700;color:rgba(255,255,255,0.55);letter-spacing:0.04em;">${initials}</td>
+  </tr></table>`
+  if (!url || !url.startsWith('http')) return fallback
+  return `<img src="${escapeHtml(url)}" width="56" height="56" alt="${escapeHtml(teamName)}" style="display:block;margin:0 auto 10px;max-width:56px;height:56px;object-fit:contain;">`
 }
 
 function buildReminderHtml(match, predictionsUrl) {
@@ -73,27 +79,32 @@ function buildReminderHtml(match, predictionsUrl) {
 
             <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:20px;">
               <tr>
-                <td>
-                  <span style="display:inline-block;background-color:rgba(201,168,76,0.12);border:1px solid rgba(201,168,76,0.35);border-radius:6px;padding:5px 12px;font-size:12px;font-weight:600;color:#F2D27A;">${escapeHtml(match.stageLabel)}</span>
+                <td align="center">
+                  <span style="display:inline-block;background-color:rgba(201,168,76,0.12);border:1px solid rgba(201,168,76,0.35);border-radius:6px;padding:5px 14px;font-size:12px;font-weight:600;color:#F2D27A;letter-spacing:0.03em;">${escapeHtml(match.stageLabel)}</span>
                 </td>
-                <td align="right" style="vertical-align:middle;">
-                  <span style="font-size:12px;color:rgba(255,255,255,0.45);">${escapeHtml(match.kickoffLabel)}</span>
+              </tr>
+            </table>
+
+            <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:8px;">
+              <tr>
+                <td width="44%" align="center" style="vertical-align:middle;padding:8px 0;">
+                  ${crestCell(match.homeTeamCrest, match.homeTeam)}
+                  <p style="margin:0;font-size:15px;font-weight:700;color:#ffffff;text-align:center;">${escapeHtml(match.homeTeam)}</p>
+                </td>
+                <td width="12%" align="center" style="vertical-align:middle;">
+                  <span style="font-size:10px;font-weight:700;color:rgba(255,255,255,0.25);letter-spacing:0.15em;text-transform:uppercase;">vs</span>
+                </td>
+                <td width="44%" align="center" style="vertical-align:middle;padding:8px 0;">
+                  ${crestCell(match.awayTeamCrest, match.awayTeam)}
+                  <p style="margin:0;font-size:15px;font-weight:700;color:#ffffff;text-align:center;">${escapeHtml(match.awayTeam)}</p>
                 </td>
               </tr>
             </table>
 
             <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:20px;">
               <tr>
-                <td width="44%" align="center" style="vertical-align:middle;padding:8px 0;">
-                  ${crestImg(match.homeTeamCrest, match.homeTeam)}
-                  <p style="margin:0;font-size:14px;font-weight:700;color:#ffffff;text-align:center;">${escapeHtml(match.homeTeam)}</p>
-                </td>
-                <td width="12%" align="center" style="vertical-align:middle;">
-                  <span style="font-size:10px;font-weight:700;color:rgba(255,255,255,0.25);letter-spacing:0.15em;text-transform:uppercase;">vs</span>
-                </td>
-                <td width="44%" align="center" style="vertical-align:middle;padding:8px 0;">
-                  ${crestImg(match.awayTeamCrest, match.awayTeam)}
-                  <p style="margin:0;font-size:14px;font-weight:700;color:#ffffff;text-align:center;">${escapeHtml(match.awayTeam)}</p>
+                <td align="center" style="padding:12px 0 4px;">
+                  <span style="display:inline-block;background-color:rgba(201,168,76,0.1);border:1px solid rgba(201,168,76,0.35);border-radius:6px;padding:8px 18px;font-size:14px;font-weight:600;color:#F2D27A;">&#128197; ${escapeHtml(match.kickoffLabel)}</span>
                 </td>
               </tr>
             </table>
@@ -104,8 +115,8 @@ function buildReminderHtml(match, predictionsUrl) {
 
             <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:24px;">
               <tr>
-                <td style="font-size:12px;color:rgba(255,255,255,0.4);padding-bottom:4px;">Competition</td>
-                <td align="right" style="font-size:13px;color:rgba(255,255,255,0.85);font-weight:500;padding-bottom:4px;">${escapeHtml(match.championshipName)}</td>
+                <td style="font-size:12px;color:rgba(255,255,255,0.4);">Competition</td>
+                <td align="right" style="font-size:13px;color:rgba(255,255,255,0.85);font-weight:500;">${escapeHtml(match.championshipName)}</td>
               </tr>
             </table>
 
