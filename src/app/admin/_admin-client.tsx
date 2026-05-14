@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import { ChampionshipInviteGenerator } from '@/components/championship-invite-generator'
-import { STAGE_LABELS } from '@/lib/prediction-reminder-rules'
+import { stageLabel } from '@/lib/prediction-reminder-rules'
 
 interface Match {
   id: number
@@ -283,7 +283,7 @@ function MatchOverrideRow({ match, timezone }: { match: Match; timezone: string 
     <form action={formAction} className="flex items-center gap-3 rounded-lg border border-white/10 bg-white/5 px-4 py-2 flex-wrap">
       <input type="hidden" name="matchId" value={match.id} />
       <span className="text-sm text-white flex-1 min-w-0">
-        <span className="text-white/30 text-xs mr-2">{STAGE_LABELS[match.stage] ?? match.stage}</span>
+        <span className="text-white/30 text-xs mr-2">{stageLabel(match.stage)}</span>
         {match.homeTeam} vs {match.awayTeam}
         <span className="ml-2 text-white/30 text-xs">{new Intl.DateTimeFormat('en-GB', { timeZone: timezone, day: 'numeric', month: 'short', year: 'numeric' }).format(new Date(match.kickoff))}</span>
         {match.adminOverride && <Badge className="ml-2 bg-orange-600/20 text-orange-400 text-xs">overridden</Badge>}

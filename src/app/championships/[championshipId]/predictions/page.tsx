@@ -7,7 +7,7 @@ import { formatMatchTime } from '@/lib/format-date'
 import { ChampionshipPageNav } from '@/components/championship-page-nav'
 import Image from 'next/image'
 import { CalendarClock } from 'lucide-react'
-import { STAGE_LABELS } from '@/lib/prediction-reminder-rules'
+import { stageLabel } from '@/lib/prediction-reminder-rules'
 
 type Stage = 'GROUP' | 'ROUND_OF_32' | 'ROUND_OF_16' | 'QUARTER_FINAL' | 'SEMI_FINAL' | 'THIRD_PLACE' | 'FINAL'
 
@@ -55,7 +55,7 @@ export default async function ChampionshipPredictionsPage({ params }: { params: 
         if (!stageMatches.length) return null
         return (
           <section key={stage}>
-            <h3 className="mb-3 text-lg font-semibold text-[#C9A84C]">{STAGE_LABELS[stage]}</h3>
+            <h3 className="mb-3 text-lg font-semibold text-[#C9A84C]">{stageLabel(stage)}</h3>
             <div className="grid gap-4 sm:grid-cols-2">
               {stageMatches.map((match) => {
                 const locked = match.kickoff <= now

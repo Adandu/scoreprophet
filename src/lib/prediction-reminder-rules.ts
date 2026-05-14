@@ -12,6 +12,10 @@ export const STAGE_LABELS = {
   FINAL: 'Final',
 } as const
 
+export function stageLabel(stage: string): string {
+  return (STAGE_LABELS as Record<string, string>)[stage] ?? stage
+}
+
 export function predictionReminderWindow(now: Date) {
   return {
     gt: now,
