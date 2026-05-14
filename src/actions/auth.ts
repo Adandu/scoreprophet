@@ -5,8 +5,10 @@ import { revalidatePath } from 'next/cache'
 import { prisma } from '@/lib/db'
 import { hashPassword, verifyPassword, requireAuth } from '@/lib/auth'
 import { getSession } from '@/lib/session'
-import { sendPasswordResetEmail } from '@/lib/email'
+import { sendPasswordResetEmail, sendPredictionReminderEmail } from '@/lib/email'
 import { getAppUrl, getSafeRedirectPath } from '@/lib/app-url'
+import { formatMatchTime } from '@/lib/format-date'
+import { stageLabel } from '@/lib/prediction-reminder-rules'
 
 export async function register(prevState: unknown, formData: FormData) {
   const username = (formData.get('username') as string)?.trim()
@@ -225,5 +227,38 @@ export async function resetPassword(prevState: unknown, formData: FormData) {
     }),
   ])
 
+  return { success: true }
+}
+
+export async function sendTestReminderEmail(): Promise<{ error?: string; success?: boolean }> {
+  const session = await requireAuth()
+  const user = await prisma.user.findUnique({ where: { id: session.userId! } })
+  if (!user?.email) return { error: 'No email address saved on your account.' }
+  if (!user.predictionReminderEnabled) return { error: 'Save your profile with reminders enabled first.' }
+
+  const match = await prisma.match.findFirst({ orderBy: { kickoff: 'asc' } })
+  const membership = await prisma.championshipMember.findFirst({
+    where: { userId: user.id },
+    include: { championship: true },
+  })
+
+  const appUrl = (await getAppUrl()).replace(/\/$/, '')
+  try {
+    await sendPredictionReminderEmail(
+      user.email,
+      {
+        homeTeam: match?.homeTeam ?? 'Home Team',
+        awayTeam: match?.awayTeam ?? 'Away Team',
+        homeTeamCrest: match?.homeTeamCrest || undefined,
+        awayTeamCrest: match?.awayTeamCrest || undefined,
+        kickoffLabel: match ? formatMatchTime(match.kickoff, user.timezone) : 'Thu, 12 Jun · 20:00',
+        stageLabel: match ? stageLabel(match.stage) : 'Group Stage',
+        championshipName: membership?.championship.name ?? 'My Championship',
+      },
+      `${appUrl}/championships/${membership?.championshipId ?? 1}/predictions`,
+    )
+  } catch {
+    return { error: 'Failed to send email. Check your SMTP settings.' }
+  }
   return { success: true }
 }

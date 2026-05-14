@@ -1,7 +1,7 @@
 'use client'
 
-import { useActionState, useState } from 'react'
-import { updateProfile, changePassword, deleteAccount } from '@/actions/auth'
+import { useActionState, useState, useTransition } from 'react'
+import { updateProfile, changePassword, deleteAccount, sendTestReminderEmail } from '@/actions/auth'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { TIMEZONES } from '@/components/timezone-selector'
@@ -22,6 +22,8 @@ export function ProfileClient({ user }: { user: ProfileUser }) {
   const [email, setEmail] = useState(user.email)
   const [predictionReminderEnabled, setPredictionReminderEnabled] = useState(user.predictionReminderEnabled)
   const [notificationWarning, setNotificationWarning] = useState('')
+  const [testPending, startTestTransition] = useTransition()
+  const [testResult, setTestResult] = useState<{ error?: string; success?: boolean } | null>(null)
 
   return (
     <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(320px,420px)]">
@@ -96,6 +98,27 @@ export function ProfileClient({ user }: { user: ProfileUser }) {
               </span>
             </label>
             {notificationWarning && <p className="text-sm text-orange-300">{notificationWarning}</p>}
+            {predictionReminderEnabled && (
+              <div className="flex flex-wrap items-center gap-3">
+                <Button
+                  type="button"
+                  variant="outline"
+                  disabled={testPending}
+                  onClick={() => {
+                    setTestResult(null)
+                    startTestTransition(async () => {
+                      const result = await sendTestReminderEmail()
+                      setTestResult(result)
+                    })
+                  }}
+                  className="border-white/20 text-white/70 hover:bg-white/10 bg-transparent text-sm"
+                >
+                  {testPending ? 'Sending...' : 'Send test email'}
+                </Button>
+                {testResult?.success && <span className="text-sm text-green-400">Test email sent!</span>}
+                {testResult?.error && <span className="text-sm text-red-400">{testResult.error}</span>}
+              </div>
+            )}
           </fieldset>
 
           <div>
