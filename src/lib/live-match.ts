@@ -3,13 +3,40 @@ export interface FormationPosition {
   top: number   // percentage 0–100
 }
 
-export function getTeamColor(teamId: string, crestUrl = ''): string {
+const CLUB_COLOR_MAP: Record<string, string> = {
+  black: '#111827',
+  blue: '#2563eb',
+  gold: '#d4af37',
+  green: '#16a34a',
+  maroon: '#7f1d1d',
+  navy: '#1e3a8a',
+  orange: '#f97316',
+  purple: '#9333ea',
+  red: '#dc2626',
+  sky: '#38bdf8',
+  white: '#f8fafc',
+  yellow: '#facc15',
+}
+
+export function getTeamColor(teamId: string, crestUrl = '', clubColors = ''): string {
+  const clubColor = getColorFromClubColors(clubColors)
+  if (clubColor) return clubColor
+
   const source = `${teamId}:${crestUrl}`
   const hash = fnv1a(source)
   const hue = hash % 360
   const saturation = 62 + ((hash >>> 9) % 18)
   const lightness = 42 + ((hash >>> 17) % 12)
   return hslToHex(hue, saturation, lightness)
+}
+
+function getColorFromClubColors(value: string): string | null {
+  const tokens = value.toLowerCase().split(/[^a-z]+/).filter(Boolean)
+  for (const token of tokens) {
+    const color = CLUB_COLOR_MAP[token]
+    if (color) return color
+  }
+  return null
 }
 
 function fnv1a(value: string): number {

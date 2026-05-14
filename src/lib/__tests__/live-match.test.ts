@@ -39,6 +39,12 @@ describe('computeFormationPositions', () => {
 })
 
 describe('getTeamColor', () => {
+  it('uses the first parseable API club color when available', () => {
+    expect(getTeamColor('764', 'https://crests.football-data.org/764.svg', 'Yellow / Green / Blue')).toBe('#facc15')
+    expect(getTeamColor('773', 'https://crests.football-data.org/773.svg', 'Blue / White / Red')).toBe('#2563eb')
+    expect(getTeamColor('765', 'https://crests.football-data.org/765.svg', 'Red / Green')).toBe('#dc2626')
+  })
+
   it('returns a consistent color from API identifiers', () => {
     const color1 = getTeamColor('9999', 'https://crests.football-data.org/9999.svg')
     const color2 = getTeamColor('9999', 'https://crests.football-data.org/9999.svg')
@@ -52,10 +58,10 @@ describe('getTeamColor', () => {
 
   it('keeps nearby football-data team identifiers visually distinct', () => {
     const colors = [
-      getTeamColor('799', 'https://crests.football-data.org/799.svg'),
-      getTeamColor('773', 'https://crests.football-data.org/773.svg'),
-      getTeamColor('764', 'https://crests.football-data.org/764.svg'),
-      getTeamColor('765', 'https://crests.football-data.org/765.svg'),
+      getTeamColor('799', 'https://crests.football-data.org/799.svg', 'Unlisted'),
+      getTeamColor('773', 'https://crests.football-data.org/773.svg', 'Unlisted'),
+      getTeamColor('764', 'https://crests.football-data.org/764.svg', 'Unlisted'),
+      getTeamColor('765', 'https://crests.football-data.org/765.svg', 'Unlisted'),
     ]
 
     expect(new Set(colors).size).toBe(colors.length)

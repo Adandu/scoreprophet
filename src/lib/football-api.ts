@@ -65,6 +65,7 @@ export interface LiveTeam {
   id: string
   name: string
   crest: string
+  clubColors: string
   formation: string  // e.g. "4-3-3", empty string if unknown
   lineup: LivePlayer[]
   bench: LivePlayer[]
@@ -308,6 +309,7 @@ export async function fetchLiveMatchDetails(matchId: string | number): Promise<L
     id: String(t.id ?? ''),
     name: t.name ?? '',
     crest: t.crest ?? '',
+    clubColors: t.clubColors ?? '',
     formation: t.formation ?? '',
     lineup: (t.lineup ?? []).map(normalizePlayer),
     bench: (t.bench ?? []).map(normalizePlayer),
