@@ -10,8 +10,10 @@ import { getAppUrl, getSafeRedirectPath } from '@/lib/app-url'
 import { normalizeEmail } from '@/lib/utils'
 import { formatMatchTime } from '@/lib/format-date'
 import { stageLabel } from '@/lib/prediction-reminder-rules'
+import { rateLimitLogin, rateLimitRegister, rateLimitResetRequest, rateLimitResetExecute } from '@/lib/rate-limit'
 
 export async function register(prevState: unknown, formData: FormData) {
+  if (!await rateLimitRegister()) return { error: 'Too many registration attempts. Try again later.' }
   const username = (formData.get('username') as string)?.trim()
   const password = formData.get('password') as string
   const redirectTo = getSafeRedirectPath(formData.get('redirectTo'))
@@ -41,6 +43,7 @@ export async function register(prevState: unknown, formData: FormData) {
 }
 
 export async function login(prevState: unknown, formData: FormData) {
+  if (!await rateLimitLogin()) return { error: 'Too many login attempts. Try again in 5 minutes.' }
   const username = (formData.get('username') as string)?.trim()
   const password = formData.get('password') as string
   const redirectTo = getSafeRedirectPath(formData.get('redirectTo'))
@@ -164,6 +167,7 @@ export async function deleteAccount(prevState: unknown, formData: FormData) {
 }
 
 export async function requestPasswordReset(prevState: unknown, formData: FormData) {
+  if (!await rateLimitResetRequest()) return { success: true }  // silent to avoid email enumeration
   const email = normalizeEmail((formData.get('email') as string) ?? '')
   if (email === null) return { error: 'Enter a valid email address' }
 
@@ -202,6 +206,7 @@ export async function resetPassword(prevState: unknown, formData: FormData) {
   if (!token) return { error: 'Password reset link is missing or invalid' }
   if (!password || password.length < 8) return { error: 'Password must be at least 8 characters' }
   if (password !== confirmPassword) return { error: 'Passwords do not match' }
+  if (!await rateLimitResetExecute()) return { error: 'Too many attempts. Try again later.' }
 
   const tokenHash = hashToken(token)
   const now = new Date()
