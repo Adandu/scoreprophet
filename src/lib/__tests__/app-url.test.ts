@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { getSafeRedirectPath } from '@/lib/app-url'
 
 describe('getSafeRedirectPath', () => {
@@ -34,5 +34,29 @@ describe('getSafeRedirectPath', () => {
 
   it('accepts a deeply nested internal path', () => {
     expect(getSafeRedirectPath('/tournament/match/42')).toBe('/tournament/match/42')
+  })
+})
+
+describe('getAppUrl', () => {
+  beforeEach(() => {
+    vi.resetModules()
+  })
+
+  it('returns APP_URL with trailing slash stripped', async () => {
+    process.env.APP_URL = 'https://example.com/'
+    const { getAppUrl } = await import('../app-url')
+    expect(await getAppUrl()).toBe('https://example.com')
+  })
+
+  it('returns APP_URL without trailing slash unchanged', async () => {
+    process.env.APP_URL = 'https://example.com'
+    const { getAppUrl } = await import('../app-url')
+    expect(await getAppUrl()).toBe('https://example.com')
+  })
+
+  it('throws when APP_URL is not set', async () => {
+    delete process.env.APP_URL
+    const { getAppUrl } = await import('../app-url')
+    await expect(getAppUrl()).rejects.toThrow('APP_URL')
   })
 })

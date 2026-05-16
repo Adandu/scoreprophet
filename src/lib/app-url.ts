@@ -1,12 +1,7 @@
-import { headers } from 'next/headers'
-
 export async function getAppUrl(): Promise<string> {
-  if (process.env.APP_URL) return process.env.APP_URL.replace(/\/$/, '')
-  const h = await headers()
-  const host = h.get('x-forwarded-host') ?? h.get('host')
-  const proto = h.get('x-forwarded-proto') ?? 'http'
-  if (!host) throw new Error('APP_URL is not configured')
-  return `${proto}://${host}`
+  const url = process.env.APP_URL
+  if (!url) throw new Error('APP_URL environment variable is required')
+  return url.replace(/\/$/, '')
 }
 
 export function getSafeRedirectPath(value: FormDataEntryValue | string | null): string {

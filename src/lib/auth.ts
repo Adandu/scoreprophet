@@ -1,6 +1,7 @@
 import bcrypt from 'bcryptjs'
 import { redirect } from 'next/navigation'
 import { getSession } from '@/lib/session'
+import { prisma } from '@/lib/db'
 
 export async function hashPassword(password: string): Promise<string> {
   return bcrypt.hash(password, 12)
@@ -18,7 +19,11 @@ export async function requireAuth() {
 
 export async function requireAdmin() {
   const session = await requireAuth()
-  if (!session.isAdmin) redirect('/')
+  const user = await prisma.user.findUnique({
+    where: { id: session.userId! },
+    select: { isAdmin: true },
+  })
+  if (!user?.isAdmin) redirect('/')
   return session
 }
 

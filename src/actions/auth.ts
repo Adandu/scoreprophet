@@ -16,7 +16,7 @@ export async function register(prevState: unknown, formData: FormData) {
   const password = formData.get('password') as string
   const redirectTo = getSafeRedirectPath(formData.get('redirectTo'))
   if (!username || username.length < 2 || username.length > 30) return { error: 'Username must be 2–30 characters' }
-  if (!password || password.length < 6) return { error: 'Password must be at least 6 characters' }
+  if (!password || password.length < 8) return { error: 'Password must be at least 8 characters' }
   const existing = await prisma.user.findUnique({ where: { username } })
   if (existing) return { error: 'Username already taken' }
   const adminPassword = process.env.ADMIN_PASSWORD
@@ -128,7 +128,7 @@ export async function changePassword(prevState: unknown, formData: FormData) {
   const confirmPassword = formData.get('confirmPassword') as string
 
   if (!currentPassword) return { error: 'Enter your current password' }
-  if (!newPassword || newPassword.length < 6) return { error: 'New password must be at least 6 characters' }
+  if (!newPassword || newPassword.length < 8) return { error: 'New password must be at least 8 characters' }
   if (newPassword !== confirmPassword) return { error: 'New passwords do not match' }
 
   const user = await prisma.user.findUnique({ where: { id: session.userId! } })
@@ -141,6 +141,8 @@ export async function changePassword(prevState: unknown, formData: FormData) {
     data: { passwordHash: await hashPassword(newPassword) },
   })
 
+  const session = await getSession()
+  session.destroy()
   return { success: true }
 }
 
@@ -169,6 +171,9 @@ export async function requestPasswordReset(prevState: unknown, formData: FormDat
   if (email) {
     const user = await prisma.user.findUnique({ where: { email } })
     if (user) {
+      await prisma.passwordResetToken.deleteMany({
+        where: { userId: user.id, usedAt: null },
+      })
       const token = crypto.randomBytes(32).toString('base64url')
       await prisma.passwordResetToken.create({
         data: {
@@ -196,32 +201,33 @@ export async function resetPassword(prevState: unknown, formData: FormData) {
   const confirmPassword = formData.get('confirmPassword') as string
 
   if (!token) return { error: 'Password reset link is missing or invalid' }
-  if (!password || password.length < 6) return { error: 'Password must be at least 6 characters' }
+  if (!password || password.length < 8) return { error: 'Password must be at least 8 characters' }
   if (password !== confirmPassword) return { error: 'Passwords do not match' }
 
-  const reset = await prisma.passwordResetToken.findUnique({
-    where: { tokenHash: hashToken(token) },
+  const tokenHash = hashToken(token)
+  const now = new Date()
+
+  const result = await prisma.$transaction(async (tx) => {
+    const reset = await tx.passwordResetToken.findUnique({ where: { tokenHash } })
+    if (!reset || reset.usedAt || reset.expiresAt <= now) return null
+
+    await Promise.all([
+      tx.user.update({
+        where: { id: reset.userId },
+        data: { passwordHash: await hashPassword(password) },
+      }),
+      tx.passwordResetToken.update({
+        where: { id: reset.id },
+        data: { usedAt: now },
+      }),
+      tx.passwordResetToken.deleteMany({
+        where: { userId: reset.userId, id: { not: reset.id }, usedAt: null },
+      }),
+    ])
+    return reset.userId
   })
-  if (!reset || reset.usedAt || reset.expiresAt <= new Date()) return { error: 'Password reset link has expired' }
 
-  await prisma.$transaction([
-    prisma.user.update({
-      where: { id: reset.userId },
-      data: { passwordHash: await hashPassword(password) },
-    }),
-    prisma.passwordResetToken.update({
-      where: { id: reset.id },
-      data: { usedAt: new Date() },
-    }),
-    prisma.passwordResetToken.deleteMany({
-      where: {
-        userId: reset.userId,
-        id: { not: reset.id },
-        usedAt: null,
-      },
-    }),
-  ])
-
+  if (!result) return { error: 'Password reset link has expired' }
   return { success: true }
 }
 
