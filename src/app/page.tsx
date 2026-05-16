@@ -1,5 +1,5 @@
 import { prisma } from '@/lib/db'
-import { getCurrentUser } from '@/lib/auth'
+import { requireAuth } from '@/lib/auth'
 import { LiveMatchCard } from '@/components/live-match-card'
 import { Countdown } from '@/components/countdown'
 import { parseStoredHeadToHead } from '@/lib/head-to-head'
@@ -108,9 +108,12 @@ async function getRevealedPredictionsByMatch(
 }
 
 export default async function HomePage() {
-  const [matches, user] = await Promise.all([getFeaturedMatches(), getCurrentUser()])
-  const timezone = user?.timezone ?? 'Europe/Bucharest'
-  const selectedChampionship = user ? await getSelectedChampionship(user.userId) : null
+  const session = await requireAuth()
+  const [matches, selectedChampionship] = await Promise.all([
+    getFeaturedMatches(),
+    getSelectedChampionship(session.userId!),
+  ])
+  const timezone = session.timezone ?? 'Europe/Bucharest'
   const now = new Date()
   const startedMatchIds = matches
     .filter((match) => match.status !== 'SCHEDULED' || match.kickoff <= now)

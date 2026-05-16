@@ -51,6 +51,7 @@ export function MobileMenu({
     ...championshipLinks,
     { href: '/tournament', label: 'Tournament' },
     { href: '/teams', label: 'Teams' },
+    { href: '/instructions', label: 'How to Play' },
     ...(user ? [{ href: '/profile', label: 'Profile' }] : []),
     ...(canManageChampionships ? [{ href: '/manage', label: 'Manage' }] : []),
     ...(user?.isAdmin ? [{ href: '/admin', label: 'Admin' }] : []),

@@ -44,8 +44,9 @@ function normalizeMatch(match) {
     group: match.group ?? null,
     kickoff: new Date(match.utcDate),
     status: STATUS_MAP[match.status] ?? 'SCHEDULED',
-    homeScore: match.score?.fullTime?.home ?? null,
-    awayScore: match.score?.fullTime?.away ?? null,
+    scoreDuration: match.score?.duration === 'EXTRA_TIME' || match.score?.duration === 'PENALTY_SHOOTOUT' ? match.score.duration : 'REGULAR',
+    homeScore: match.score?.regularTime?.home ?? match.score?.fullTime?.home ?? null,
+    awayScore: match.score?.regularTime?.away ?? match.score?.fullTime?.away ?? null,
   }
 }
 

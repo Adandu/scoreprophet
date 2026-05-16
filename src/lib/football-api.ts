@@ -9,6 +9,7 @@ if (!FOOTBALL_API_KEY && process.env.NODE_ENV === 'production') {
 }
 
 type MatchStatus = 'SCHEDULED' | 'LIVE' | 'FINISHED'
+type ScoreDuration = 'REGULAR' | 'EXTRA_TIME' | 'PENALTY_SHOOTOUT'
 const TEAMS_CACHE_MS = 60 * 60 * 1000
 
 let teamsCache: { expiresAt: number; teams: NormalizedTeam[] } | null = null
@@ -23,6 +24,7 @@ export interface NormalizedMatch {
   group: string | null
   kickoff: Date
   status: MatchStatus
+  scoreDuration: ScoreDuration
   homeScore: number | null
   awayScore: number | null
   winnerTeam: string | null
@@ -155,6 +157,11 @@ function normalizeMatch(m: any): NormalizedMatch {
     return STATUS_MAP[m.status] ?? 'SCHEDULED'
   })()
   const winner = m.score?.winner ?? null
+  const scoreDuration = m.score?.duration === 'EXTRA_TIME' || m.score?.duration === 'PENALTY_SHOOTOUT'
+    ? m.score.duration
+    : 'REGULAR'
+  const homeScore = m.score?.regularTime?.home ?? m.score?.fullTime?.home ?? null
+  const awayScore = m.score?.regularTime?.away ?? m.score?.fullTime?.away ?? null
   return {
     externalId: String(m.id),
     homeTeam,
@@ -171,8 +178,9 @@ function normalizeMatch(m: any): NormalizedMatch {
     group: m.group ?? null,
     kickoff: new Date(m.utcDate),
     status,
-    homeScore: m.score?.fullTime?.home ?? null,
-    awayScore: m.score?.fullTime?.away ?? null,
+    scoreDuration,
+    homeScore,
+    awayScore,
     winnerTeam: status === 'FINISHED'
       ? winner === 'HOME_TEAM'
         ? homeTeam

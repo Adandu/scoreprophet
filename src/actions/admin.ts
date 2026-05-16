@@ -83,6 +83,7 @@ async function recalculateMatchPoints(matchId: number) {
 
   for (const advance of match.advances) {
     const pts = match.winnerTeam
+      && ['EXTRA_TIME', 'PENALTY_SHOOTOUT'].includes(match.scoreDuration)
       ? calculateAdvancePoints(advance.predictedTeam, match.winnerTeam)
       : 0
     operations.push(prisma.knockoutAdvance.update({ where: { id: advance.id }, data: { pointsAwarded: pts } }))
@@ -183,6 +184,7 @@ export async function syncMatchesFromApi(prevState: unknown) {
           group: m.group,
           kickoff: m.kickoff,
           status: m.status,
+          scoreDuration: m.scoreDuration,
           homeScore: m.homeScore,
           awayScore: m.awayScore,
           winnerTeam: m.winnerTeam,
@@ -197,6 +199,7 @@ export async function syncMatchesFromApi(prevState: unknown) {
           group: m.group,
           kickoff: m.kickoff,
           status: m.status,
+          scoreDuration: m.scoreDuration,
           homeScore: m.homeScore,
           awayScore: m.awayScore,
           winnerTeam: m.winnerTeam,

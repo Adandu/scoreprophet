@@ -47,8 +47,37 @@ describe('normalizeMatch — via fetchAllMatches', () => {
     expect(m.group).toBe('GROUP_A')
     expect(m.kickoff).toEqual(new Date('2026-06-14T18:00:00Z'))
     expect(m.status).toBe('FINISHED')
+    expect(m.scoreDuration).toBe('REGULAR')
     expect(m.homeScore).toBe(2)
     expect(m.awayScore).toBe(0)
+  })
+
+  it('uses regular-time score for matches that go to extra time', async () => {
+    mockFetch({
+      matches: [
+        {
+          id: 418,
+          utcDate: '2026-07-04T18:00:00Z',
+          status: 'FINISHED',
+          stage: 'LAST_16',
+          homeTeam: { name: 'Brazil' },
+          awayTeam: { name: 'Argentina' },
+          score: {
+            duration: 'EXTRA_TIME',
+            winner: 'AWAY_TEAM',
+            regularTime: { home: 1, away: 1 },
+            fullTime: { home: 1, away: 2 },
+          },
+        },
+      ],
+    })
+
+    const [match] = await fetchAllMatches()
+
+    expect(match.scoreDuration).toBe('EXTRA_TIME')
+    expect(match.homeScore).toBe(1)
+    expect(match.awayScore).toBe(1)
+    expect(match.winnerTeam).toBe('Argentina')
   })
 
   it('applies defaults when homeTeam, awayTeam, score, and group are absent', async () => {

@@ -124,6 +124,7 @@ export async function saveKnockoutAdvance(prevState: unknown, formData: FormData
   if (!match) return { error: 'Match not found' }
   if (match.stage === 'GROUP') return { error: 'Advance prediction only for knockout rounds' }
   if (match.kickoff <= new Date()) return { error: 'Predictions are locked for this match' }
+  if (!isKnownTeam(match.homeTeam) || !isKnownTeam(match.awayTeam)) return { error: 'Advancing team prediction opens after both teams are decided' }
   if (!membership) return { error: 'You are not a member of this championship' }
   if (![match.homeTeam, match.awayTeam].includes(predictedTeam)) return { error: 'Choose one of the teams in this match' }
 
@@ -135,6 +136,11 @@ export async function saveKnockoutAdvance(prevState: unknown, formData: FormData
 
   revalidatePath(`/championships/${championshipId}/predictions`)
   return { success: true }
+}
+
+function isKnownTeam(team: string): boolean {
+  const normalized = team.trim().toUpperCase()
+  return Boolean(normalized) && normalized !== 'TBD' && normalized !== 'TBA' && !normalized.includes('TO BE DETERMINED')
 }
 
 export async function resetMatchPredictions(prevState: unknown, formData: FormData) {

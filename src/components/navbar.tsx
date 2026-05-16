@@ -44,6 +44,7 @@ export async function Navbar() {
             )}
             <Link href="/tournament" className="hover:text-white transition-colors">Tournament</Link>
             <Link href="/teams" className="hover:text-white transition-colors">Teams</Link>
+            <Link href="/instructions" className="hover:text-white transition-colors">How to Play</Link>
             <Link href="/profile" className="hover:text-white transition-colors">Profile</Link>
             {canManageChampionships && (
               <Link href="/manage" className="text-[#C9A84C] hover:text-[#C9A84C]/80 transition-colors">Manage</Link>

@@ -91,8 +91,6 @@ export default async function ChampionshipPredictionsPage({ params }: { params: 
                           matchId={match.id}
                           homeTeam={match.homeTeam}
                           awayTeam={match.awayTeam}
-                          homeTeamCrest={match.homeTeamCrest}
-                          awayTeamCrest={match.awayTeamCrest}
                           existing={existing}
                           isKnockout={match.stage !== 'GROUP'}
                           existingAdvanceTeam={advanceByMatch[match.id]}

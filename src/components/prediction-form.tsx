@@ -1,7 +1,6 @@
 'use client'
 
 import { useActionState, useEffect, useMemo, useState } from 'react'
-import Image from 'next/image'
 import { savePrediction, saveKnockoutAdvance } from '@/actions/predictions'
 import { Button } from '@/components/ui/button'
 
@@ -18,8 +17,6 @@ interface Props {
   matchId: number
   homeTeam: string
   awayTeam: string
-  homeTeamCrest: string
-  awayTeamCrest: string
   existing: ExistingPrediction[]
   isKnockout: boolean
   existingAdvanceTeam?: string
@@ -76,8 +73,6 @@ export function PredictionForm({
   matchId,
   homeTeam,
   awayTeam,
-  homeTeamCrest,
-  awayTeamCrest,
   existing,
   isKnockout,
   existingAdvanceTeam,
@@ -152,7 +147,7 @@ export function PredictionForm({
 
       {/* Exact Score */}
       <div>
-        <p className="text-xs text-white/50 mb-1">Exact score (5 pts){hasExact && ' ✓'}</p>
+        <p className="text-xs text-white/50 mb-1">Exact score after 90 minutes (5 pts){hasExact && ' ✓'}</p>
         <ExactScoreForm
           matchId={matchId}
           championshipId={championshipId}
@@ -165,19 +160,25 @@ export function PredictionForm({
       </div>
 
       {/* Knockout Advance */}
-      {isKnockout && (
+      {isKnockout && isKnownTeam(homeTeam) && isKnownTeam(awayTeam) && (
         <KnockoutAdvanceForm
           matchId={matchId}
           homeTeam={homeTeam}
           awayTeam={awayTeam}
-          homeTeamCrest={homeTeamCrest}
-          awayTeamCrest={awayTeamCrest}
           existingTeam={existingAdvanceTeam}
           championshipId={championshipId}
         />
       )}
+      {isKnockout && (!isKnownTeam(homeTeam) || !isKnownTeam(awayTeam)) && (
+        <p className="text-xs text-white/40">Advancing team selection opens after both teams are decided.</p>
+      )}
     </div>
   )
+}
+
+function isKnownTeam(team: string): boolean {
+  const normalized = team.trim().toUpperCase()
+  return Boolean(normalized) && normalized !== 'TBD' && normalized !== 'TBA' && !normalized.includes('TO BE DETERMINED')
 }
 
 function ExactScoreForm({
@@ -334,48 +335,36 @@ function KnockoutAdvanceForm({
   matchId,
   homeTeam,
   awayTeam,
-  homeTeamCrest,
-  awayTeamCrest,
   existingTeam,
   championshipId,
 }: {
   matchId: number
   homeTeam: string
   awayTeam: string
-  homeTeamCrest: string
-  awayTeamCrest: string
   existingTeam?: string
   championshipId: number
 }) {
   const [state, formAction, pending] = useActionState(saveKnockoutAdvance, null)
   return (
     <div>
-      <p className="text-xs text-white/50 mb-1">Who advances? (1 bonus pt){existingTeam && ` ✓ ${existingTeam}`}</p>
-      <div className="flex flex-wrap justify-center gap-2">
-        {[
-          { name: homeTeam, crest: homeTeamCrest },
-          { name: awayTeam, crest: awayTeamCrest },
-        ].map((team) => {
-          const active = existingTeam === team.name
-          return (
-            <form key={team.name} action={formAction}>
-              <input type="hidden" name="matchId" value={matchId} />
-              <input type="hidden" name="championshipId" value={championshipId} />
-              <input type="hidden" name="predictedTeam" value={team.name} />
-              <Button
-                type="submit"
-                size="sm"
-                disabled={pending}
-                variant={active ? 'default' : 'outline'}
-                className={active ? 'bg-purple-600 text-white border-0' : 'border-white/20 text-white/70 bg-transparent hover:bg-white/10'}
-              >
-                {team.crest && <Image src={team.crest} alt="" width={18} height={18} className="max-h-4 w-auto object-contain" />}
-                {team.name}
-              </Button>
-            </form>
-          )
-        })}
-      </div>
+      <p className="text-xs text-white/50 mb-1">If extra time happens, which team will advance? (1 bonus pt)</p>
+      <form action={formAction} className="flex justify-center gap-2">
+        <input type="hidden" name="matchId" value={matchId} />
+        <input type="hidden" name="championshipId" value={championshipId} />
+        <select
+          name="predictedTeam"
+          defaultValue={existingTeam ?? ''}
+          className="h-8 min-w-48 rounded-md border border-white/20 bg-[#0A1628] px-2 text-sm text-white"
+        >
+          <option value="" disabled>Choose advancing team</option>
+          <option value={homeTeam}>{homeTeam}</option>
+          <option value={awayTeam}>{awayTeam}</option>
+        </select>
+        <Button type="submit" size="sm" disabled={pending} className="h-8 bg-purple-600 text-white hover:bg-purple-500">
+          {existingTeam ? 'Update' : 'Save'}
+        </Button>
+      </form>
+      {existingTeam && <p className="mt-1 text-xs text-purple-300">Saved: {existingTeam}</p>}
       {state?.error && <p className="text-xs text-red-400 mt-1">{state.error}</p>}
     </div>
   )
