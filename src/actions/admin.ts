@@ -59,17 +59,21 @@ async function recalculateMatchPoints(matchId: number) {
   })
   if (!match || match.homeScore === null || match.awayScore === null) return
 
+  const operations = []
+
   for (const pred of match.predictions) {
     const pts = calculatePredictionPoints(pred.type as PredictionType, pred.value, match.homeScore, match.awayScore)
-    await prisma.prediction.update({ where: { id: pred.id }, data: { pointsAwarded: pts } })
+    operations.push(prisma.prediction.update({ where: { id: pred.id }, data: { pointsAwarded: pts } }))
   }
 
   for (const advance of match.advances) {
     const pts = match.winnerTeam
       ? calculateAdvancePoints(advance.predictedTeam, match.winnerTeam)
       : 0
-    await prisma.knockoutAdvance.update({ where: { id: advance.id }, data: { pointsAwarded: pts } })
+    operations.push(prisma.knockoutAdvance.update({ where: { id: advance.id }, data: { pointsAwarded: pts } }))
   }
+
+  if (operations.length > 0) await prisma.$transaction(operations)
 }
 
 export async function removeUser(prevState: unknown, formData: FormData) {
@@ -134,13 +138,15 @@ export async function syncMatchesFromApi(prevState: unknown) {
   try {
     const matches = await fetchAllMatches()
     let synced = 0
+    let h2hFetched = 0
     const changedMatchIds = new Set<number>()
+    const staleH2HBefore = new Date(Date.now() - 60 * 60 * 1000)
 
     for (const m of matches) {
       // Read current stored scores to detect changes
       const existing = await prisma.match.findUnique({
         where: { externalId: m.externalId },
-        select: { id: true, homeScore: true, awayScore: true },
+        select: { id: true, homeScore: true, awayScore: true, status: true, headToHeadSyncedAt: true },
       })
 
       const upserted = await prisma.match.upsert({
@@ -183,24 +189,29 @@ export async function syncMatchesFromApi(prevState: unknown) {
         changedMatchIds.add(upserted.id)
       }
 
-      try {
-        const headToHead = await fetchHeadToHead(m.externalId, 10)
-        await prisma.match.update({
-          where: { externalId: m.externalId },
-          data: {
-            headToHeadHomeTeamId: headToHead.homeTeamId,
-            headToHeadAwayTeamId: headToHead.awayTeamId,
-            headToHeadJson: JSON.stringify(headToHead.matches),
-            headToHeadSyncedAt: new Date(),
-          },
-        })
-      } catch (h2hErr) {
-        console.warn(`[syncMatchesFromApi] H2H fetch failed for match ${m.externalId}:`, h2hErr)
+      const h2hIsFresh = existing?.headToHeadSyncedAt && existing.headToHeadSyncedAt > staleH2HBefore
+      const transitionedToFinished = existing?.status !== 'FINISHED' && m.status === 'FINISHED'
+      if (!h2hIsFresh || transitionedToFinished) {
+        try {
+          const headToHead = await fetchHeadToHead(m.externalId, 10)
+          await prisma.match.update({
+            where: { externalId: m.externalId },
+            data: {
+              headToHeadHomeTeamId: headToHead.homeTeamId,
+              headToHeadAwayTeamId: headToHead.awayTeamId,
+              headToHeadJson: JSON.stringify(headToHead.matches),
+              headToHeadSyncedAt: new Date(),
+            },
+          })
+          h2hFetched++
+        } catch (h2hErr) {
+          console.warn(`[syncMatchesFromApi] H2H fetch failed for match ${m.externalId}:`, h2hErr)
+        }
       }
       synced++
 
       // Rate-limit H2H calls: wait before the next iteration
-      if (synced < matches.length) {
+      if (h2hFetched > 0 && synced < matches.length) {
         await sleep(h2hDelayMs)
       }
     }

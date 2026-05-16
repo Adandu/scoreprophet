@@ -9,6 +9,9 @@ if (!FOOTBALL_API_KEY && process.env.NODE_ENV === 'production') {
 }
 
 type MatchStatus = 'SCHEDULED' | 'LIVE' | 'FINISHED'
+const TEAMS_CACHE_MS = 60 * 60 * 1000
+
+let teamsCache: { expiresAt: number; teams: NormalizedTeam[] } | null = null
 
 export interface NormalizedMatch {
   externalId: string
@@ -236,6 +239,10 @@ export async function fetchNextMatch(): Promise<NormalizedMatch | null> {
 }
 
 export async function fetchAllTeams(): Promise<NormalizedTeam[]> {
+  if (process.env.NODE_ENV !== 'test' && teamsCache && Date.now() < teamsCache.expiresAt) {
+    return teamsCache.teams
+  }
+
   const res = await fetch(
     `${BASE_URL}/competitions/${COMPETITION}/teams`,
     {
@@ -248,7 +255,11 @@ export async function fetchAllTeams(): Promise<NormalizedTeam[]> {
   }
   const data = await res.json()
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return (data.teams ?? []).map((t: any): NormalizedTeam => normalizeTeam(t))
+  const teams = (data.teams ?? []).map((t: any): NormalizedTeam => normalizeTeam(t))
+  if (process.env.NODE_ENV !== 'test') {
+    teamsCache = { expiresAt: Date.now() + TEAMS_CACHE_MS, teams }
+  }
+  return teams
 }
 
 export async function fetchTeamById(id: string | number): Promise<NormalizedTeam> {
