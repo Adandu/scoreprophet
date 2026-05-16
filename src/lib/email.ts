@@ -13,8 +13,19 @@ export interface PredictionReminderEmailMatch {
 
 const crestCache = new Map<string, string>()
 
+const ALLOWED_CREST_HOSTS = new Set([
+  'crests.football-data.org',
+  'media.api-sports.io',
+  'upload.wikimedia.org',
+  'flags.fmcdn.net',
+])
+const MAX_CREST_BYTES = 512 * 1024
+
 async function crestToDataUri(url: string | undefined): Promise<string | null> {
-  if (!url || !url.startsWith('http')) return null
+  if (!url || !url.startsWith('https://')) return null
+  let parsed: URL
+  try { parsed = new URL(url) } catch { return null }
+  if (!ALLOWED_CREST_HOSTS.has(parsed.hostname)) return null
   if (crestCache.has(url)) return crestCache.get(url)!
   try {
     const res = await fetch(url, { signal: AbortSignal.timeout(5000) })
@@ -22,17 +33,19 @@ async function crestToDataUri(url: string | undefined): Promise<string | null> {
     const contentType = res.headers.get('content-type') ?? ''
     if (contentType.includes('svg') || url.toLowerCase().endsWith('.svg')) {
       const svg = await res.text()
+      if (svg.length > MAX_CREST_BYTES) return null
       const resvg = new Resvg(svg, { fitTo: { mode: 'width', value: 56 } })
       const png = resvg.render().asPng()
       const uri = `data:image/png;base64,${Buffer.from(png).toString('base64')}`
-      crestCache.set(url, uri)
+      if (crestCache.size < 500) crestCache.set(url, uri)
       return uri
     }
     if (contentType.includes('png') || contentType.includes('jpeg')) {
       const buf = Buffer.from(await res.arrayBuffer())
+      if (buf.length > MAX_CREST_BYTES) return null
       const mime = contentType.includes('jpeg') ? 'image/jpeg' : 'image/png'
       const uri = `data:${mime};base64,${buf.toString('base64')}`
-      crestCache.set(url, uri)
+      if (crestCache.size < 500) crestCache.set(url, uri)
       return uri
     }
   } catch {
@@ -57,6 +70,7 @@ function createTransporter() {
     host,
     port,
     secure: port === 465,
+    requireTLS: port !== 465,
     auth: { user, pass },
   })
 }
