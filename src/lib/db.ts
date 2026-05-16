@@ -1,8 +1,15 @@
+import Database from 'better-sqlite3'
 import { PrismaClient } from '@prisma/client'
 import { PrismaBetterSqlite3 } from '@prisma/adapter-better-sqlite3'
 
 function createPrismaClient() {
   const url = (process.env.DATABASE_URL ?? 'file:./dev.db').replace(/^file:/, '')
+  // Set WAL pragmas using a temporary connection — pragmas persist on the SQLite file
+  const setup = new Database(url)
+  setup.pragma('journal_mode = WAL')
+  setup.pragma('synchronous = NORMAL')
+  setup.pragma('foreign_keys = ON')
+  setup.close()
   const adapter = new PrismaBetterSqlite3({ url })
   return new PrismaClient({
     adapter,
