@@ -200,6 +200,11 @@ export async function fetchAllMatches(): Promise<NormalizedMatch[]> {
 }
 
 export async function fetchLiveMatch(): Promise<NormalizedMatch | null> {
+  const matches = await fetchLiveMatches()
+  return matches[0] ?? null
+}
+
+export async function fetchLiveMatches(): Promise<NormalizedMatch[]> {
   const res = await fetch(
     `${BASE_URL}/competitions/${COMPETITION}/matches?status=IN_PLAY`,
     {
@@ -212,8 +217,8 @@ export async function fetchLiveMatch(): Promise<NormalizedMatch | null> {
   }
   const data = await res.json()
   const matches = data.matches ?? []
-  if (matches.length === 0) return null
-  return normalizeMatch(matches[0])
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return matches.map((m: any) => normalizeMatch(m))
 }
 
 export async function fetchNextMatch(): Promise<NormalizedMatch | null> {

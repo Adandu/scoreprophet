@@ -1,19 +1,19 @@
 import Image from 'next/image'
-import { fetchLiveMatch, fetchLiveMatchDetails } from '@/lib/football-api'
+import { fetchLiveMatches, fetchLiveMatchDetails, type NormalizedMatch } from '@/lib/football-api'
 import { PitchFormation } from '@/components/pitch-formation'
 import { LivePageRefresh } from '@/components/live-page-refresh'
 
 export const revalidate = 5
 
 export default async function LivePage() {
-  let liveMatch
+  let liveMatches: NormalizedMatch[]
   try {
-    liveMatch = await fetchLiveMatch()
+    liveMatches = await fetchLiveMatches()
   } catch {
-    liveMatch = null
+    liveMatches = []
   }
 
-  if (!liveMatch) {
+  if (liveMatches.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center gap-4 py-24 text-center">
         <div className="text-5xl">⚽</div>
@@ -23,6 +23,17 @@ export default async function LivePage() {
     )
   }
 
+  return (
+    <div className="space-y-8">
+      <LivePageRefresh isLive={true} />
+      {liveMatches.map((liveMatch) => (
+        <LiveMatchPanel key={liveMatch.externalId} liveMatch={liveMatch} />
+      ))}
+    </div>
+  )
+}
+
+async function LiveMatchPanel({ liveMatch }: { liveMatch: NormalizedMatch }) {
   let details
   try {
     details = await fetchLiveMatchDetails(liveMatch.externalId)
@@ -30,8 +41,8 @@ export default async function LivePage() {
     return (
       <div className="flex flex-col items-center justify-center gap-4 py-24 text-center">
         <div className="text-5xl">⚽</div>
-        <h1 className="text-2xl font-bold text-white">Live match data unavailable</h1>
-        <p className="text-white/50">Unable to load match details. Please try again shortly.</p>
+        <h2 className="text-2xl font-bold text-white">{liveMatch.homeTeam} vs {liveMatch.awayTeam}</h2>
+        <p className="text-white/50">Live match data is unavailable. Please try again shortly.</p>
       </div>
     )
   }
@@ -50,8 +61,6 @@ export default async function LivePage() {
 
   return (
     <div className="space-y-4">
-      <LivePageRefresh isLive={details.status === 'IN_PLAY'} />
-
       {/* Score header */}
       <div className="flex items-center justify-between rounded-xl border border-white/10 bg-[#0a1628] px-8 py-5">
         <TeamBlock name={details.homeTeam.name} crest={details.homeTeam.crest} />

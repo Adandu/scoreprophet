@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { fetchAllMatches, fetchAllTeams, type NormalizedMatch, type NormalizedTeam } from '@/lib/football-api'
+import { fetchAllMatches, fetchAllTeams, fetchLiveMatches, type NormalizedMatch, type NormalizedTeam } from '@/lib/football-api'
 
 // We test normalizeMatch and normalizeTeam indirectly by mocking fetch and
 // calling the public fetchAllMatches / fetchAllTeams functions, which pipe
@@ -123,6 +123,23 @@ describe('normalizeMatch — via fetchAllMatches', () => {
       const [m] = await fetchAllMatches()
       expect(m.stage).toBe(normalized)
     }
+  })
+})
+
+describe('fetchLiveMatches', () => {
+  it('returns all in-play matches, not just the first', async () => {
+    mockFetch({
+      matches: [
+        { id: 1, status: 'IN_PLAY', homeTeam: { name: 'A' }, awayTeam: { name: 'B' }, score: { fullTime: { home: 1, away: 0 } }, stage: 'GROUP_STAGE', utcDate: '2026-06-01T18:00:00Z' },
+        { id: 2, status: 'IN_PLAY', homeTeam: { name: 'C' }, awayTeam: { name: 'D' }, score: { fullTime: { home: 0, away: 0 } }, stage: 'GROUP_STAGE', utcDate: '2026-06-01T18:00:00Z' },
+      ],
+    })
+
+    const result = await fetchLiveMatches()
+
+    expect(result).toHaveLength(2)
+    expect(result[0].externalId).toBe('1')
+    expect(result[1].externalId).toBe('2')
   })
 })
 
