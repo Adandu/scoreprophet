@@ -143,8 +143,8 @@ export default async function HomePage() {
                     awayTeamCrest: match.awayTeamCrest,
                     homeTeamUrl: match.headToHeadHomeTeamId ? `/teams/${match.headToHeadHomeTeamId}` : undefined,
                     awayTeamUrl: match.headToHeadAwayTeamId ? `/teams/${match.headToHeadAwayTeamId}` : undefined,
-                    homeScore: match.homeScore,
-                    awayScore: match.awayScore,
+                    homeScore: match.fullTimeHomeScore ?? match.homeScore,
+                    awayScore: match.fullTimeAwayScore ?? match.awayScore,
                     status: match.status,
                     kickoff: match.kickoff.toISOString(),
                   }}

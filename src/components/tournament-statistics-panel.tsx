@@ -33,6 +33,15 @@ type SquadPerson = {
   dateOfBirth?: string
 }
 
+type FinishedMatchScore = {
+  homeTeam: string
+  awayTeam: string
+  homeScore: number | null
+  awayScore: number | null
+  fullTimeHomeScore: number | null
+  fullTimeAwayScore: number | null
+}
+
 const MIN_PLAYER_AGE = 15
 const MAX_PLAYER_AGE = 60
 
@@ -41,7 +50,14 @@ export async function TournamentStatisticsPanel() {
     prisma.match.findMany({
       where: { status: 'FINISHED' },
       orderBy: { kickoff: 'asc' },
-      select: { homeTeam: true, awayTeam: true, homeScore: true, awayScore: true },
+      select: {
+        homeTeam: true,
+        awayTeam: true,
+        homeScore: true,
+        awayScore: true,
+        fullTimeHomeScore: true,
+        fullTimeAwayScore: true,
+      },
     }),
     prisma.matchEvent.findMany({
       select: {
@@ -71,9 +87,10 @@ export async function TournamentStatisticsPanel() {
   ])
 
   const teamsByName = new Map(teams.map((team) => [team.name, team]))
-  const totalGoals = matches.reduce((sum, match) => sum + (match.homeScore ?? 0) + (match.awayScore ?? 0), 0)
-  const completedMatches = matches.length
-  const teamTotals = getTeamTotals(matches)
+  const displayMatches = matches.map(toDisplayMatchScore)
+  const totalGoals = displayMatches.reduce((sum, match) => sum + (match.homeScore ?? 0) + (match.awayScore ?? 0), 0)
+  const completedMatches = displayMatches.length
+  const teamTotals = getTeamTotals(displayMatches)
   const mostGoalsTeam = [...teamTotals.values()].sort((a, b) => b.goalsFor - a.goalsFor || a.teamName.localeCompare(b.teamName))[0]
   const leastGoalsAgainstTeam = [...teamTotals.values()]
     .filter((team) => team.played > 0)
@@ -85,10 +102,10 @@ export async function TournamentStatisticsPanel() {
   const redCards = events.filter((event) => event.type === 'RED_CARD' || event.type === 'YELLOW_RED_CARD')
   const foulsTotal = getStatTotal(teamStats, 'FOULS', events, 'FOUL')
   const cornersTotal = getStatTotal(teamStats, 'CORNERS', events, 'CORNER')
-  const mostGoalsMatch = matches
+  const mostGoalsMatch = displayMatches
     .filter((match) => match.homeScore !== null && match.awayScore !== null)
     .sort((a, b) => (b.homeScore! + b.awayScore!) - (a.homeScore! + a.awayScore!))[0]
-  const cleanSheets = countCleanSheets(matches)
+  const cleanSheets = countCleanSheets(displayMatches)
   const youngestPlayer = getAgeExtreme(teams, 'youngest')
   const oldestPlayer = getAgeExtreme(teams, 'oldest')
 
@@ -291,6 +308,15 @@ function getTeamTotals(matches: Array<{ homeTeam: string; awayTeam: string; home
     away.goalsAgainst += match.homeScore
   }
   return totals
+}
+
+function toDisplayMatchScore(match: FinishedMatchScore) {
+  return {
+    homeTeam: match.homeTeam,
+    awayTeam: match.awayTeam,
+    homeScore: match.fullTimeHomeScore ?? match.homeScore,
+    awayScore: match.fullTimeAwayScore ?? match.awayScore,
+  }
 }
 
 function getStatTotal(teamStats: Array<{ type: string; value: number }>, statType: string, events: StatEvent[], eventType: string) {

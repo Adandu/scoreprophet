@@ -48,6 +48,10 @@ describe('normalizeMatch — via fetchAllMatches', () => {
     expect(m.kickoff).toEqual(new Date('2026-06-14T18:00:00Z'))
     expect(m.status).toBe('FINISHED')
     expect(m.scoreDuration).toBe('REGULAR')
+    expect(m.regularTimeHomeScore).toBeNull()
+    expect(m.regularTimeAwayScore).toBeNull()
+    expect(m.fullTimeHomeScore).toBe(2)
+    expect(m.fullTimeAwayScore).toBe(0)
     expect(m.homeScore).toBe(2)
     expect(m.awayScore).toBe(0)
   })
@@ -66,6 +70,7 @@ describe('normalizeMatch — via fetchAllMatches', () => {
             duration: 'EXTRA_TIME',
             winner: 'AWAY_TEAM',
             regularTime: { home: 1, away: 1 },
+            extraTime: { home: 0, away: 1 },
             fullTime: { home: 1, away: 2 },
           },
         },
@@ -75,6 +80,12 @@ describe('normalizeMatch — via fetchAllMatches', () => {
     const [match] = await fetchAllMatches()
 
     expect(match.scoreDuration).toBe('EXTRA_TIME')
+    expect(match.regularTimeHomeScore).toBe(1)
+    expect(match.regularTimeAwayScore).toBe(1)
+    expect(match.extraTimeHomeScore).toBe(0)
+    expect(match.extraTimeAwayScore).toBe(1)
+    expect(match.fullTimeHomeScore).toBe(1)
+    expect(match.fullTimeAwayScore).toBe(2)
     expect(match.homeScore).toBe(1)
     expect(match.awayScore).toBe(1)
     expect(match.winnerTeam).toBe('Argentina')

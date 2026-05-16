@@ -34,20 +34,53 @@ function getHeaders() {
 }
 
 function normalizeMatch(match) {
+  const homeTeam = match.homeTeam?.name ?? 'TBD'
+  const awayTeam = match.awayTeam?.name ?? 'TBD'
+  const status = STATUS_MAP[match.status] ?? 'SCHEDULED'
+  const winner = match.score?.winner ?? null
+  const regularTimeHomeScore = scorePart(match.score, 'regularTime', 'home')
+  const regularTimeAwayScore = scorePart(match.score, 'regularTime', 'away')
+  const fullTimeHomeScore = scorePart(match.score, 'fullTime', 'home')
+  const fullTimeAwayScore = scorePart(match.score, 'fullTime', 'away')
+  const extraTimeHomeScore = scorePart(match.score, 'extraTime', 'home')
+  const extraTimeAwayScore = scorePart(match.score, 'extraTime', 'away')
+  const penaltiesHomeScore = scorePart(match.score, 'penalties', 'home')
+  const penaltiesAwayScore = scorePart(match.score, 'penalties', 'away')
+
   return {
     externalId: String(match.id),
-    homeTeam: match.homeTeam?.name ?? 'TBD',
-    awayTeam: match.awayTeam?.name ?? 'TBD',
+    homeTeam,
+    awayTeam,
     homeTeamCrest: match.homeTeam?.crest ?? '',
     awayTeamCrest: match.awayTeam?.crest ?? '',
     stage: STAGE_MAP[match.stage] ?? 'GROUP',
     group: match.group ?? null,
     kickoff: new Date(match.utcDate),
-    status: STATUS_MAP[match.status] ?? 'SCHEDULED',
+    status,
     scoreDuration: match.score?.duration === 'EXTRA_TIME' || match.score?.duration === 'PENALTY_SHOOTOUT' ? match.score.duration : 'REGULAR',
-    homeScore: match.score?.regularTime?.home ?? match.score?.fullTime?.home ?? null,
-    awayScore: match.score?.regularTime?.away ?? match.score?.fullTime?.away ?? null,
+    regularTimeHomeScore,
+    regularTimeAwayScore,
+    fullTimeHomeScore,
+    fullTimeAwayScore,
+    extraTimeHomeScore,
+    extraTimeAwayScore,
+    penaltiesHomeScore,
+    penaltiesAwayScore,
+    homeScore: regularTimeHomeScore ?? fullTimeHomeScore,
+    awayScore: regularTimeAwayScore ?? fullTimeAwayScore,
+    winnerTeam: status === 'FINISHED'
+      ? winner === 'HOME_TEAM'
+        ? homeTeam
+        : winner === 'AWAY_TEAM'
+          ? awayTeam
+          : null
+      : null,
   }
+}
+
+function scorePart(score, key, side) {
+  const value = score?.[key]?.[side]
+  return typeof value === 'number' ? value : null
 }
 
 async function fetchJson(path) {

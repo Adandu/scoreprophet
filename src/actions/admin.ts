@@ -31,7 +31,22 @@ export async function overrideMatchScore(prevState: unknown, formData: FormData)
 
   await prisma.match.update({
     where: { id: matchId },
-    data: { homeScore, awayScore, winnerTeam, status: 'FINISHED', adminOverride: true },
+    data: {
+      scoreDuration: 'REGULAR',
+      regularTimeHomeScore: homeScore,
+      regularTimeAwayScore: awayScore,
+      fullTimeHomeScore: homeScore,
+      fullTimeAwayScore: awayScore,
+      extraTimeHomeScore: null,
+      extraTimeAwayScore: null,
+      penaltiesHomeScore: null,
+      penaltiesAwayScore: null,
+      homeScore,
+      awayScore,
+      winnerTeam,
+      status: 'FINISHED',
+      adminOverride: true,
+    },
   })
 
   await recalculateMatchPoints(matchId)
@@ -45,6 +60,7 @@ export async function overrideMatchScore(prevState: unknown, formData: FormData)
   })
   revalidatePath('/admin')
   revalidatePath('/results')
+  revalidatePath('/tournament')
   revalidatePath('/leaderboard')
   return { success: true }
 }
@@ -170,7 +186,15 @@ export async function syncMatchesFromApi(prevState: unknown) {
       // Read current stored scores to detect changes
       const existing = await prisma.match.findUnique({
         where: { externalId: m.externalId },
-        select: { id: true, homeScore: true, awayScore: true, status: true, headToHeadSyncedAt: true },
+        select: {
+          id: true,
+          homeScore: true,
+          awayScore: true,
+          status: true,
+          scoreDuration: true,
+          winnerTeam: true,
+          headToHeadSyncedAt: true,
+        },
       })
 
       const upserted = await prisma.match.upsert({
@@ -185,6 +209,14 @@ export async function syncMatchesFromApi(prevState: unknown) {
           kickoff: m.kickoff,
           status: m.status,
           scoreDuration: m.scoreDuration,
+          regularTimeHomeScore: m.regularTimeHomeScore,
+          regularTimeAwayScore: m.regularTimeAwayScore,
+          fullTimeHomeScore: m.fullTimeHomeScore,
+          fullTimeAwayScore: m.fullTimeAwayScore,
+          extraTimeHomeScore: m.extraTimeHomeScore,
+          extraTimeAwayScore: m.extraTimeAwayScore,
+          penaltiesHomeScore: m.penaltiesHomeScore,
+          penaltiesAwayScore: m.penaltiesAwayScore,
           homeScore: m.homeScore,
           awayScore: m.awayScore,
           winnerTeam: m.winnerTeam,
@@ -200,6 +232,14 @@ export async function syncMatchesFromApi(prevState: unknown) {
           kickoff: m.kickoff,
           status: m.status,
           scoreDuration: m.scoreDuration,
+          regularTimeHomeScore: m.regularTimeHomeScore,
+          regularTimeAwayScore: m.regularTimeAwayScore,
+          fullTimeHomeScore: m.fullTimeHomeScore,
+          fullTimeAwayScore: m.fullTimeAwayScore,
+          extraTimeHomeScore: m.extraTimeHomeScore,
+          extraTimeAwayScore: m.extraTimeAwayScore,
+          penaltiesHomeScore: m.penaltiesHomeScore,
+          penaltiesAwayScore: m.penaltiesAwayScore,
           homeScore: m.homeScore,
           awayScore: m.awayScore,
           winnerTeam: m.winnerTeam,
@@ -209,8 +249,12 @@ export async function syncMatchesFromApi(prevState: unknown) {
       // Track this match if its score changed (or it's newly created with a score)
       const scoreChanged =
         existing === null
-          ? m.homeScore !== null || m.awayScore !== null
-          : existing.homeScore !== m.homeScore || existing.awayScore !== m.awayScore
+          ? m.homeScore !== null || m.awayScore !== null || m.winnerTeam !== null
+          : existing.homeScore !== m.homeScore
+            || existing.awayScore !== m.awayScore
+            || existing.scoreDuration !== m.scoreDuration
+            || existing.winnerTeam !== m.winnerTeam
+            || existing.status !== m.status
       if (scoreChanged) {
         changedMatchIds.add(upserted.id)
       }
@@ -285,6 +329,7 @@ export async function syncMatchesFromApi(prevState: unknown) {
 
     revalidatePath('/admin')
     revalidatePath('/results')
+    revalidatePath('/tournament')
     revalidatePath('/leaderboard')
     revalidatePath('/teams')
     await logAdminAction({

@@ -25,6 +25,14 @@ export interface NormalizedMatch {
   kickoff: Date
   status: MatchStatus
   scoreDuration: ScoreDuration
+  regularTimeHomeScore: number | null
+  regularTimeAwayScore: number | null
+  fullTimeHomeScore: number | null
+  fullTimeAwayScore: number | null
+  extraTimeHomeScore: number | null
+  extraTimeAwayScore: number | null
+  penaltiesHomeScore: number | null
+  penaltiesAwayScore: number | null
   homeScore: number | null
   awayScore: number | null
   winnerTeam: string | null
@@ -146,6 +154,12 @@ function getHeaders(): HeadersInit {
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
+function scorePart(score: any, key: 'regularTime' | 'fullTime' | 'extraTime' | 'penalties', side: 'home' | 'away'): number | null {
+  const value = score?.[key]?.[side]
+  return typeof value === 'number' ? value : null
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function normalizeMatch(m: any): NormalizedMatch {
   const homeTeam = m.homeTeam?.name ?? 'TBD'
   const awayTeam = m.awayTeam?.name ?? 'TBD'
@@ -160,8 +174,16 @@ function normalizeMatch(m: any): NormalizedMatch {
   const scoreDuration = m.score?.duration === 'EXTRA_TIME' || m.score?.duration === 'PENALTY_SHOOTOUT'
     ? m.score.duration
     : 'REGULAR'
-  const homeScore = m.score?.regularTime?.home ?? m.score?.fullTime?.home ?? null
-  const awayScore = m.score?.regularTime?.away ?? m.score?.fullTime?.away ?? null
+  const regularTimeHomeScore = scorePart(m.score, 'regularTime', 'home')
+  const regularTimeAwayScore = scorePart(m.score, 'regularTime', 'away')
+  const fullTimeHomeScore = scorePart(m.score, 'fullTime', 'home')
+  const fullTimeAwayScore = scorePart(m.score, 'fullTime', 'away')
+  const extraTimeHomeScore = scorePart(m.score, 'extraTime', 'home')
+  const extraTimeAwayScore = scorePart(m.score, 'extraTime', 'away')
+  const penaltiesHomeScore = scorePart(m.score, 'penalties', 'home')
+  const penaltiesAwayScore = scorePart(m.score, 'penalties', 'away')
+  const homeScore = regularTimeHomeScore ?? fullTimeHomeScore
+  const awayScore = regularTimeAwayScore ?? fullTimeAwayScore
   return {
     externalId: String(m.id),
     homeTeam,
@@ -179,6 +201,14 @@ function normalizeMatch(m: any): NormalizedMatch {
     kickoff: new Date(m.utcDate),
     status,
     scoreDuration,
+    regularTimeHomeScore,
+    regularTimeAwayScore,
+    fullTimeHomeScore,
+    fullTimeAwayScore,
+    extraTimeHomeScore,
+    extraTimeAwayScore,
+    penaltiesHomeScore,
+    penaltiesAwayScore,
     homeScore,
     awayScore,
     winnerTeam: status === 'FINISHED'

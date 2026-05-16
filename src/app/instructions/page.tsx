@@ -41,6 +41,10 @@ export default async function InstructionsPage() {
             match is decided in regular time, this pick is ignored and awards 0 points. This pick locks at kickoff
             with your other predictions.
           </p>
+          <p className="mt-3">
+            Tournament brackets show the official final score, including extra time and penalties where applicable.
+            Prediction points still use the 90-minute score.
+          </p>
         </div>
       </section>
 

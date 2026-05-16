@@ -10,6 +10,26 @@ function pointsBadge(pts: number | null) {
   return <Badge className={`${cls} text-white text-xs`}>{pts} pt{pts !== 1 ? 's' : ''}</Badge>
 }
 
+function formatDisplayScore(match: {
+  homeScore: number | null
+  awayScore: number | null
+  fullTimeHomeScore: number | null
+  fullTimeAwayScore: number | null
+  penaltiesHomeScore: number | null
+  penaltiesAwayScore: number | null
+  scoreDuration: string
+}) {
+  const homeScore = match.fullTimeHomeScore ?? match.homeScore
+  const awayScore = match.fullTimeAwayScore ?? match.awayScore
+  const base = `${homeScore ?? '-'}-${awayScore ?? '-'}`
+
+  if (match.scoreDuration === 'PENALTY_SHOOTOUT' && match.penaltiesHomeScore !== null && match.penaltiesAwayScore !== null) {
+    return `${base} (pens ${match.penaltiesHomeScore}-${match.penaltiesAwayScore})`
+  }
+  if (match.scoreDuration === 'EXTRA_TIME') return `${base} AET`
+  return base
+}
+
 export default async function ChampionshipResultsPage({ params }: { params: Promise<{ championshipId: string }> }) {
   const { championshipId: rawId } = await params
   const championshipId = parseInt(rawId, 10)
@@ -36,7 +56,7 @@ export default async function ChampionshipResultsPage({ params }: { params: Prom
         <div key={match.id} className="rounded-xl border border-white/10 bg-white/5 overflow-hidden">
           <div className="flex items-center justify-between px-4 py-3 border-b border-white/10">
             <span className="font-semibold text-white">
-              {match.homeTeam} {match.homeScore}-{match.awayScore} {match.awayTeam}
+              {match.homeTeam} {formatDisplayScore(match)} {match.awayTeam}
             </span>
             <div className="flex items-center gap-3">
               {match.status === 'LIVE' && (

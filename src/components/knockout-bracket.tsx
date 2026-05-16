@@ -11,6 +11,9 @@ interface BracketMatch {
   awayTeam: string
   homeScore: number | null
   awayScore: number | null
+  scoreDuration: string
+  penaltiesHomeScore: number | null
+  penaltiesAwayScore: number | null
   winnerTeam: string | null
   status: string
   stage: string
@@ -31,6 +34,9 @@ interface DisplayMatch {
   awayTeam: string
   homeScore: number | null
   awayScore: number | null
+  scoreDuration: string
+  penaltiesHomeScore: number | null
+  penaltiesAwayScore: number | null
   winnerTeam: string | null
   status: string
   stage: Stage
@@ -188,6 +194,7 @@ function RoundColumn({ title, matches, timezone }: { title: string; matches: Dis
 function MatchSlot({ match, timezone, compact = false, roomy = false }: { match: DisplayMatch; timezone: string; compact?: boolean; roomy?: boolean }) {
   const homeWon = match.status === 'FINISHED' && match.winnerTeam === match.homeTeam
   const awayWon = match.status === 'FINISHED' && match.winnerTeam === match.awayTeam
+  const scoreNote = getScoreNote(match)
 
   return (
     <div className={`w-full rounded-md border border-white/10 bg-[#0A1628]/80 ${roomy ? 'p-3' : 'p-1.5'} ${compact ? 'max-w-[132px]' : ''}`}>
@@ -195,6 +202,7 @@ function MatchSlot({ match, timezone, compact = false, roomy = false }: { match:
       <TeamLine team={match.awayTeam} score={match.awayScore} winner={awayWon} roomy={roomy} />
       <div className={`mt-1.5 flex items-center justify-between gap-1 border-t border-white/10 pt-1.5 text-white/35 ${roomy ? 'text-[11px]' : 'text-[9px]'}`}>
         <span>{match.kickoff ? formatMatchTime(match.kickoff, timezone) : `M${match.matchNo}`}</span>
+        {scoreNote && <span className="shrink-0 text-[#C9A84C]/80">{scoreNote}</span>}
         {match.status === 'LIVE' && <span className="h-2 w-2 animate-pulse rounded-full bg-green-400" />}
       </div>
     </div>
@@ -248,6 +256,9 @@ function buildDisplayMatches(matches: BracketMatch[]): DisplayMatch[] {
       awayTeam: match && match.awayTeam !== 'TBD' ? match.awayTeam : slot.awaySlot,
       homeScore: match?.homeScore ?? null,
       awayScore: match?.awayScore ?? null,
+      scoreDuration: match?.scoreDuration ?? 'REGULAR',
+      penaltiesHomeScore: match?.penaltiesHomeScore ?? null,
+      penaltiesAwayScore: match?.penaltiesAwayScore ?? null,
       winnerTeam: match?.winnerTeam ?? null,
       status: match?.status ?? 'SCHEDULED',
       stage: slot.stage,
@@ -258,4 +269,13 @@ function buildDisplayMatches(matches: BracketMatch[]): DisplayMatch[] {
 
 function byKickoff(a: BracketMatch, b: BracketMatch) {
   return new Date(a.kickoff).getTime() - new Date(b.kickoff).getTime()
+}
+
+function getScoreNote(match: DisplayMatch) {
+  if (match.status !== 'FINISHED') return null
+  if (match.scoreDuration === 'PENALTY_SHOOTOUT' && match.penaltiesHomeScore !== null && match.penaltiesAwayScore !== null) {
+    return `Pens ${match.penaltiesHomeScore}-${match.penaltiesAwayScore}`
+  }
+  if (match.scoreDuration === 'EXTRA_TIME') return 'AET'
+  return null
 }
