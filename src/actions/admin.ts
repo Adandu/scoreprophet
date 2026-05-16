@@ -4,17 +4,12 @@ import { revalidatePath } from 'next/cache'
 import { prisma } from '@/lib/db'
 import { requireAdmin } from '@/lib/auth'
 import { calculatePredictionPoints, calculateAdvancePoints } from '@/lib/scoring'
-import type { PredictionType } from '@/lib/scoring'
+import type { PredictionType } from '@/lib/types'
+import { normalizeEmail } from '@/lib/utils'
 import { sendPredictionReminderEmail } from '@/lib/email'
 import { formatMatchTime } from '@/lib/format-date'
 import { getAppUrl } from '@/lib/app-url'
 import { STAGE_LABELS } from '@/lib/prediction-reminder-rules'
-
-function normalizeEmail(email: string): string | null {
-  const trimmed = email.trim().toLowerCase()
-  if (!trimmed) return null
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed) ? trimmed : ''
-}
 
 export async function overrideMatchScore(prevState: unknown, formData: FormData) {
   await requireAdmin()

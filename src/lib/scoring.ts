@@ -1,4 +1,12 @@
-export type PredictionType = 'SINGLE_OUTCOME' | 'DOUBLE_CHANCE' | 'EXACT_SCORE';
+import type { PredictionType } from './types'
+export type { PredictionType }  // re-export for backward compat
+
+export const SCORING = {
+  EXACT_SCORE: 5,
+  SINGLE_OUTCOME: 3,
+  DOUBLE_CHANCE: 1,
+  ADVANCE: 1,
+} as const
 
 function getOutcome(homeScore: number, awayScore: number): '1' | 'X' | '2' {
   if (homeScore > awayScore) return '1';
@@ -22,16 +30,16 @@ export function calculatePredictionPoints(
 
   switch (type) {
     case 'SINGLE_OUTCOME':
-      return value === outcome ? 3 : 0;
+      return value === outcome ? SCORING.SINGLE_OUTCOME : 0;
 
     case 'DOUBLE_CHANCE': {
       const covers = DOUBLE_CHANCE_MAP[value] ?? [];
-      return covers.includes(outcome) ? 1 : 0;
+      return covers.includes(outcome) ? SCORING.DOUBLE_CHANCE : 0;
     }
 
     case 'EXACT_SCORE': {
       const [predictedHome, predictedAway] = value.split('-').map(Number);
-      return predictedHome === homeScore && predictedAway === awayScore ? 5 : 0;
+      return predictedHome === homeScore && predictedAway === awayScore ? SCORING.EXACT_SCORE : 0;
     }
 
     default:

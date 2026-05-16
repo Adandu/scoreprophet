@@ -1,4 +1,4 @@
-export type PredictionType = 'SINGLE_OUTCOME' | 'DOUBLE_CHANCE' | 'EXACT_SCORE';
+import type { PredictionType } from './types'
 
 const MAX_GOALS_PER_TEAM = 10;
 type ScoreOutcome = '1' | 'X' | '2';
@@ -55,7 +55,7 @@ export function validatePredictionCombination(
  *
  * Constraints:
  * - Both values must be non-negative integers.
- * - Neither value may exceed MAX_GOALS_PER_TEAM (15).
+ * - Neither value may exceed MAX_GOALS_PER_TEAM (10).
  *
  * @returns { home, away } on success, or null if the input is invalid.
  */

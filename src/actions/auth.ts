@@ -7,6 +7,7 @@ import { hashPassword, verifyPassword, requireAuth } from '@/lib/auth'
 import { getSession } from '@/lib/session'
 import { sendPasswordResetEmail, sendPredictionReminderEmail } from '@/lib/email'
 import { getAppUrl, getSafeRedirectPath } from '@/lib/app-url'
+import { normalizeEmail } from '@/lib/utils'
 import { formatMatchTime } from '@/lib/format-date'
 import { stageLabel } from '@/lib/prediction-reminder-rules'
 
@@ -70,12 +71,6 @@ function isValidTimezone(tz: string): boolean {
   } catch {
     return false
   }
-}
-
-function normalizeEmail(email: string): string | null {
-  const trimmed = email.trim().toLowerCase()
-  if (!trimmed) return null
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed) ? trimmed : null
 }
 
 function hashToken(token: string): string {

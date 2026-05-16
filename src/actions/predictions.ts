@@ -10,8 +10,7 @@ import {
   validatePredictionCombination,
   validateSelectionsAgainstExactScore,
 } from '@/lib/validation'
-
-type PredictionType = 'SINGLE_OUTCOME' | 'DOUBLE_CHANCE' | 'EXACT_SCORE'
+import type { PredictionType } from '@/lib/types'
 
 export async function savePrediction(prevState: unknown, formData: FormData) {
   const session = await requireAuth()
