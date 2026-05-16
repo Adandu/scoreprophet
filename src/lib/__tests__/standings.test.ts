@@ -58,6 +58,19 @@ describe('computeGroupStandings', () => {
 
     expect(result.GROUP_A.every((row) => !row.advancing)).toBe(true)
   })
+
+  it('uses head-to-head points before overall goal difference for group ties', () => {
+    const result = computeGroupStandings([
+      finishedMatch('GROUP_A', 'Alpha', 'Bravo', 1, 0),
+      finishedMatch('GROUP_A', 'Alpha', 'Charlie', 0, 3),
+      finishedMatch('GROUP_A', 'Alpha', 'Delta', 2, 0),
+      finishedMatch('GROUP_A', 'Bravo', 'Charlie', 4, 0),
+      finishedMatch('GROUP_A', 'Bravo', 'Delta', 1, 0),
+      finishedMatch('GROUP_A', 'Charlie', 'Delta', 0, 0),
+    ])
+
+    expect(result.GROUP_A.map((row) => row.team)).toEqual(['Alpha', 'Bravo', 'Charlie', 'Delta'])
+  })
 })
 
 describe('getBest8ThirdPlace', () => {

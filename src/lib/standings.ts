@@ -45,6 +45,51 @@ function compareRows(a: StandingRow, b: StandingRow): number {
   return b.pts - a.pts || b.gd - a.gd || b.gf - a.gf || a.team.localeCompare(b.team)
 }
 
+interface H2HRecord {
+  pts: number
+  gd: number
+  gf: number
+}
+
+function emptyH2HRecord(): H2HRecord {
+  return { pts: 0, gd: 0, gf: 0 }
+}
+
+function computeH2HRecord(team: string, tiedTeams: Set<string>, matches: GroupMatch[]): H2HRecord {
+  const record = emptyH2HRecord()
+  for (const match of matches) {
+    if (match.status !== 'FINISHED' || match.homeScore === null || match.awayScore === null) continue
+    if (!tiedTeams.has(match.homeTeam) || !tiedTeams.has(match.awayTeam)) continue
+    if (match.homeTeam !== team && match.awayTeam !== team) continue
+
+    const isHome = match.homeTeam === team
+    const goalsFor = isHome ? match.homeScore : match.awayScore
+    const goalsAgainst = isHome ? match.awayScore : match.homeScore
+    record.gf += goalsFor
+    record.gd += goalsFor - goalsAgainst
+    if (goalsFor > goalsAgainst) record.pts += 3
+    else if (goalsFor === goalsAgainst) record.pts += 1
+  }
+  return record
+}
+
+function sortGroupRows(rows: StandingRow[], matches: GroupMatch[]) {
+  rows.sort((a, b) => {
+    if (b.pts !== a.pts) return b.pts - a.pts
+
+    const tiedTeams = new Set(rows.filter((row) => row.pts === a.pts).map((row) => row.team))
+    if (tiedTeams.size > 1 && tiedTeams.has(b.team)) {
+      const h2hA = computeH2HRecord(a.team, tiedTeams, matches)
+      const h2hB = computeH2HRecord(b.team, tiedTeams, matches)
+      if (h2hB.pts !== h2hA.pts) return h2hB.pts - h2hA.pts
+      if (h2hB.gd !== h2hA.gd) return h2hB.gd - h2hA.gd
+      if (h2hB.gf !== h2hA.gf) return h2hB.gf - h2hA.gf
+    }
+
+    return b.gd - a.gd || b.gf - a.gf || a.team.localeCompare(b.team)
+  })
+}
+
 export function computeGroupStandings(matches: GroupMatch[]): GroupStandings {
   const groups: GroupStandings = {}
   const rowsByTeamByGroup: Record<string, Map<string, StandingRow>> = {}
@@ -105,7 +150,7 @@ export function computeGroupStandings(matches: GroupMatch[]): GroupStandings {
   }
 
   for (const [group, rows] of Object.entries(groups)) {
-    rows.sort(compareRows)
+    sortGroupRows(rows, matches.filter((match) => match.group === group))
     const complete = totalByGroup[group] > 0 && totalByGroup[group] === finishedByGroup[group]
     if (complete) {
       rows.forEach((row, index) => {
