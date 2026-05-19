@@ -160,3 +160,38 @@ export async function resetMatchPredictions(prevState: unknown, formData: FormDa
   revalidatePath(`/championships/${championshipId}/predictions`)
   return { success: true }
 }
+
+export async function saveTournamentWinnerPrediction(prevState: unknown, formData: FormData) {
+  const session = await requireAuth()
+  const championshipId = parseInt(formData.get('championshipId') as string, 10)
+  const predictedTeam = (formData.get('predictedTeam') as string)?.trim()
+
+  if (!Number.isInteger(championshipId) || championshipId <= 0 || !predictedTeam) {
+    return { error: 'Missing fields' }
+  }
+
+  const [firstGroupMatch, membership] = await Promise.all([
+    prisma.match.findFirst({
+      where: { stage: 'GROUP' },
+      orderBy: { kickoff: 'asc' },
+      select: { kickoff: true },
+    }),
+    prisma.championshipMember.findFirst({
+      where: { userId: session.userId!, championshipId },
+    }),
+  ])
+
+  if (!membership) return { error: 'You are not a member of this championship' }
+  if (firstGroupMatch && firstGroupMatch.kickoff <= new Date()) {
+    return { error: 'Tournament winner prediction is locked' }
+  }
+
+  await prisma.tournamentWinnerPrediction.upsert({
+    where: { userId_championshipId: { userId: session.userId!, championshipId } },
+    update: { predictedTeam },
+    create: { userId: session.userId!, championshipId, predictedTeam },
+  })
+
+  revalidatePath(`/championships/${championshipId}/predictions`)
+  return { success: true }
+}
