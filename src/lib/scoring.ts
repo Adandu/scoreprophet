@@ -59,5 +59,5 @@ export function calculateTournamentWinnerPoints(
   predictedTeam: string,
   actualWinner: string
 ): number {
-  return predictedTeam === actualWinner ? SCORING.TOURNAMENT_WINNER : 0
+  return predictedTeam === actualWinner ? SCORING.TOURNAMENT_WINNER : 0;
 }

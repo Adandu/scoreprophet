@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef, useEffect, useActionState, useTransition } from 'react'
+import { useState, useRef, useEffect, useActionState } from 'react'
 import Image from 'next/image'
 import { saveTournamentWinnerPrediction } from '@/actions/predictions'
 import { Badge } from '@/components/ui/badge'
@@ -20,8 +20,7 @@ interface Props {
 }
 
 export function TournamentWinnerSelector({ teams, existing, championshipId, locked }: Props) {
-  const [state, formAction] = useActionState(saveTournamentWinnerPrediction, null)
-  const [isPending, startTransition] = useTransition()
+  const [state, formAction, isPending] = useActionState(saveTournamentWinnerPrediction, null)
   const [open, setOpen] = useState(false)
   const [search, setSearch] = useState('')
   const [selected, setSelected] = useState<string | null>(existing)
@@ -137,14 +136,7 @@ export function TournamentWinnerSelector({ teams, existing, championshipId, lock
         )}
       </div>
 
-      <form
-        action={formAction}
-        onSubmit={(e) => {
-          e.preventDefault()
-          const fd = new FormData(e.currentTarget)
-          startTransition(() => { formAction(fd) })
-        }}
-      >
+      <form action={formAction}>
         <input type="hidden" name="championshipId" value={championshipId} />
         <input type="hidden" name="predictedTeam" value={selected ?? ''} />
         <div className="flex items-center gap-3">
