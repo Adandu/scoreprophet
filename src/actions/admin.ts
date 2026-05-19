@@ -3,7 +3,7 @@
 import { revalidatePath } from 'next/cache'
 import { prisma } from '@/lib/db'
 import { requireAdmin } from '@/lib/auth'
-import { calculatePredictionPoints, calculateAdvancePoints } from '@/lib/scoring'
+import { calculatePredictionPoints, calculateAdvancePoints, calculateTournamentWinnerPoints } from '@/lib/scoring'
 import type { PredictionType } from '@/lib/types'
 import { normalizeEmail } from '@/lib/utils'
 import { sendPredictionReminderEmail } from '@/lib/email'
@@ -103,6 +103,16 @@ async function recalculateMatchPoints(matchId: number) {
       ? calculateAdvancePoints(advance.predictedTeam, match.winnerTeam)
       : 0
     operations.push(prisma.knockoutAdvance.update({ where: { id: advance.id }, data: { pointsAwarded: pts } }))
+  }
+
+  if (match.stage === 'FINAL' && match.winnerTeam) {
+    const winnerPredictions = await prisma.tournamentWinnerPrediction.findMany()
+    for (const wp of winnerPredictions) {
+      const pts = calculateTournamentWinnerPoints(wp.predictedTeam, match.winnerTeam)
+      operations.push(
+        prisma.tournamentWinnerPrediction.update({ where: { id: wp.id }, data: { pointsAwarded: pts } })
+      )
+    }
   }
 
   if (operations.length > 0) await prisma.$transaction(operations)
