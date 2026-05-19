@@ -2,11 +2,12 @@ import { prisma } from '@/lib/db'
 import { requireChampionshipAccess } from '@/lib/championships'
 import { PredictionForm } from '@/components/prediction-form'
 import { ResetButton } from '@/components/reset-button'
+import { TournamentWinnerSelector } from '@/components/tournament-winner-selector'
 import { Badge } from '@/components/ui/badge'
 import { formatMatchTime } from '@/lib/format-date'
 import { ChampionshipPageNav } from '@/components/championship-page-nav'
 import Image from 'next/image'
-import { CalendarClock } from 'lucide-react'
+import { CalendarClock, Trophy } from 'lucide-react'
 import { stageLabel } from '@/lib/prediction-reminder-rules'
 import type { Stage } from '@/lib/types'
 
@@ -18,14 +19,33 @@ export default async function ChampionshipPredictionsPage({ params }: { params: 
   const { session, championship } = await requireChampionshipAccess(championshipId)
   const timezone = session.timezone ?? 'Europe/Bucharest'
 
-  const [matches, userPredictions, userAdvances] = await Promise.all([
+  const [matches, userPredictions, userAdvances, dbTeams, firstGroupMatch, winnerPrediction] = await Promise.all([
     prisma.match.findMany({
       where: { status: { not: 'FINISHED' } },
       orderBy: { kickoff: 'asc' },
     }),
     prisma.prediction.findMany({ where: { userId: session.userId, championshipId } }),
     prisma.knockoutAdvance.findMany({ where: { userId: session.userId, championshipId } }),
+    prisma.team.findMany({ orderBy: { name: 'asc' }, select: { name: true, shortName: true, crest: true } }),
+    prisma.match.findFirst({ where: { stage: 'GROUP' }, orderBy: { kickoff: 'asc' }, select: { kickoff: true } }),
+    prisma.tournamentWinnerPrediction.findFirst({ where: { userId: session.userId, championshipId } }),
   ])
+
+  // Fall back to deriving teams from match records if the Team table is empty
+  let teams = dbTeams
+  if (teams.length === 0) {
+    const allMatches = await prisma.match.findMany({
+      select: { homeTeam: true, homeTeamCrest: true, awayTeam: true, awayTeamCrest: true },
+    })
+    const teamMap = new Map<string, { name: string; shortName: string; crest: string }>()
+    for (const m of allMatches) {
+      if (!teamMap.has(m.homeTeam)) teamMap.set(m.homeTeam, { name: m.homeTeam, shortName: m.homeTeam, crest: m.homeTeamCrest })
+      if (!teamMap.has(m.awayTeam)) teamMap.set(m.awayTeam, { name: m.awayTeam, shortName: m.awayTeam, crest: m.awayTeamCrest })
+    }
+    teams = [...teamMap.values()].sort((a, b) => a.name.localeCompare(b.name))
+  }
+
+  const isWinnerLocked = Boolean(firstGroupMatch && firstGroupMatch.kickoff <= new Date())
 
   const predByMatch = userPredictions.reduce<Record<number, typeof userPredictions>>((acc, p) => {
     acc[p.matchId] = acc[p.matchId] ?? []
@@ -49,6 +69,21 @@ export default async function ChampionshipPredictionsPage({ params }: { params: 
     <div className="space-y-8">
       <ChampionshipPageNav championshipId={championship.id} name={championship.name} />
       <h2 className="text-xl font-bold text-white">Predictions</h2>
+
+      <section>
+        <h3 className="mb-3 text-lg font-semibold text-[#C9A84C] flex items-center gap-2">
+          <Trophy className="h-5 w-5" aria-hidden="true" />
+          Tournament Winner
+          <span className="text-xs font-normal text-white/40 ml-1">50 pts</span>
+        </h3>
+        <TournamentWinnerSelector
+          teams={teams}
+          existing={winnerPrediction?.predictedTeam ?? null}
+          championshipId={championshipId}
+          locked={isWinnerLocked}
+        />
+      </section>
+
       {STAGE_ORDER.map((stage) => {
         const stageMatches = grouped[stage]
         if (!stageMatches.length) return null
