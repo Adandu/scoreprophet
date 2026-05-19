@@ -6,6 +6,7 @@ export const SCORING = {
   SINGLE_OUTCOME: 3,
   DOUBLE_CHANCE: 1,
   ADVANCE: 1,
+  TOURNAMENT_WINNER: 50,
 } as const
 
 function getOutcome(homeScore: number, awayScore: number): '1' | 'X' | '2' {
@@ -52,4 +53,11 @@ export function calculateAdvancePoints(
   actualWinner: string
 ): number {
   return predictedTeam === actualWinner ? SCORING.ADVANCE : 0;
+}
+
+export function calculateTournamentWinnerPoints(
+  predictedTeam: string,
+  actualWinner: string
+): number {
+  return predictedTeam === actualWinner ? SCORING.TOURNAMENT_WINNER : 0
 }

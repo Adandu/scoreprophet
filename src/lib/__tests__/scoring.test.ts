@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { calculatePredictionPoints, calculateAdvancePoints } from '@/lib/scoring';
+import { calculatePredictionPoints, calculateAdvancePoints, calculateTournamentWinnerPoints } from '@/lib/scoring';
 
 describe('calculatePredictionPoints - SINGLE_OUTCOME', () => {
   it('awards 3 points for correct prediction of home win (1)', () => {
@@ -74,5 +74,23 @@ describe('calculateAdvancePoints', () => {
 
   it('awards 1 point for exact string match including spaces', () => {
     expect(calculateAdvancePoints('Real Madrid', 'Real Madrid')).toBe(1);
+  });
+});
+
+describe('calculateTournamentWinnerPoints', () => {
+  it('awards 50 points when predicted team matches actual winner', () => {
+    expect(calculateTournamentWinnerPoints('Brazil', 'Brazil')).toBe(50);
+  });
+
+  it('awards 0 points when predicted team does not match actual winner', () => {
+    expect(calculateTournamentWinnerPoints('Argentina', 'Brazil')).toBe(0);
+  });
+
+  it('is case-sensitive when comparing teams', () => {
+    expect(calculateTournamentWinnerPoints('brazil', 'Brazil')).toBe(0);
+  });
+
+  it('awards 50 points for team names with spaces', () => {
+    expect(calculateTournamentWinnerPoints('Real Madrid', 'Real Madrid')).toBe(50);
   });
 });
