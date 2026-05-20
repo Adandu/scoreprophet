@@ -23,7 +23,7 @@ interface Props {
   headToHead?: Array<{
     id: string
     utcDate: string
-    competition: string
+    competition?: string
     homeTeam: string
     awayTeam: string
     homeScore: number | null

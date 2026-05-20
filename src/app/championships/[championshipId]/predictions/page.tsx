@@ -192,7 +192,6 @@ function H2HStrip({ json, homeTeam }: { json: string; homeTeam: string }) {
                     : 'bg-red-500/20 text-red-400 border-red-500/30'
         const date = m.utcDate.slice(0, 10)
         const score = isHome ? `${hs}–${as_}` : `${as_}–${hs}`
-        const tooltip = `${date}  ${m.homeTeam} ${m.homeScore}–${m.awayScore} ${m.awayTeam}`
 
         return (
           <div key={m.id} className="group relative">
