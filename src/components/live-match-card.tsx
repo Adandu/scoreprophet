@@ -116,7 +116,7 @@ export function LiveMatchCard({ match, timezone, countdown, headToHead = [], rev
         </div>
       )}
       <div className="mt-6 border-t border-white/10 pt-4">
-        <h2 className="mb-3 text-center text-xs font-semibold uppercase tracking-widest text-white/40">Last 10 head-to-head results</h2>
+        <h2 className="mb-3 text-center text-xs font-semibold uppercase tracking-widest text-white/40">Latest head-to-head results</h2>
         {headToHead.length > 0 ? (
           <div className="space-y-2">
             {headToHead.map((result) => (
@@ -129,7 +129,7 @@ export function LiveMatchCard({ match, timezone, countdown, headToHead = [], rev
                 </div>
                 <span className="text-right tabular-nums text-white/35">
                   {result.utcDate && !isNaN(new Date(result.utcDate).getTime())
-                    ? formatMatchTime(result.utcDate, timezone)
+                    ? new Date(result.utcDate).getFullYear()
                     : 'TBD'}
                 </span>
               </div>
