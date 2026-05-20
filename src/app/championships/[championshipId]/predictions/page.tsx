@@ -23,6 +23,11 @@ export default async function ChampionshipPredictionsPage({ params }: { params: 
     prisma.match.findMany({
       where: { status: { not: 'FINISHED' } },
       orderBy: { kickoff: 'asc' },
+      select: {
+        id: true, externalId: true, homeTeam: true, awayTeam: true,
+        homeTeamCrest: true, awayTeamCrest: true, stage: true,
+        kickoff: true, status: true, headToHeadJson: true,
+      },
     }),
     prisma.prediction.findMany({ where: { userId: session.userId, championshipId } }),
     prisma.knockoutAdvance.findMany({ where: { userId: session.userId, championshipId } }),
@@ -123,6 +128,7 @@ export default async function ChampionshipPredictionsPage({ params }: { params: 
                       <span className="w-8 text-center text-xs uppercase tracking-widest text-white/30">vs</span>
                       <TeamLabel name={match.awayTeam} crest={match.awayTeamCrest} align="left" />
                     </div>
+                    <H2HStrip json={match.headToHeadJson} homeTeam={match.homeTeam} />
                     {!locked && (
                       <>
                         <PredictionForm
@@ -152,6 +158,53 @@ export default async function ChampionshipPredictionsPage({ params }: { params: 
               })}
             </div>
           </section>
+        )
+      })}
+    </div>
+  )
+}
+
+interface H2HMatch {
+  id: string
+  utcDate: string
+  homeTeam: string
+  awayTeam: string
+  homeScore: number | null
+  awayScore: number | null
+}
+
+function H2HStrip({ json, homeTeam }: { json: string; homeTeam: string }) {
+  let matches: H2HMatch[] = []
+  try { matches = JSON.parse(json) } catch { return null }
+  if (!matches.length) return null
+
+  const sorted = [...matches].sort((a, b) => b.utcDate.localeCompare(a.utcDate))
+
+  return (
+    <div className="mt-2 flex flex-wrap items-center gap-1">
+      {sorted.map((m) => {
+        const isHome = m.homeTeam === homeTeam
+        const hs = m.homeScore ?? 0
+        const as_ = m.awayScore ?? 0
+        const result = hs === as_ ? 'D' : (isHome ? (hs > as_ ? 'W' : 'L') : (as_ > hs ? 'W' : 'L'))
+        const color = result === 'W' ? 'bg-green-500/20 text-green-400 border-green-500/30'
+                    : result === 'D' ? 'bg-white/10 text-white/50 border-white/20'
+                    : 'bg-red-500/20 text-red-400 border-red-500/30'
+        const date = m.utcDate.slice(0, 10)
+        const score = isHome ? `${hs}–${as_}` : `${as_}–${hs}`
+        const tooltip = `${date}  ${m.homeTeam} ${m.homeScore}–${m.awayScore} ${m.awayTeam}`
+
+        return (
+          <div key={m.id} className="group relative">
+            <span className={`inline-block cursor-default rounded border px-1.5 py-0.5 text-[11px] font-bold ${color}`}>
+              {result}
+            </span>
+            <div className="pointer-events-none absolute bottom-full left-1/2 z-10 mb-1.5 -translate-x-1/2 whitespace-nowrap rounded bg-[#0a1628] border border-white/10 px-2 py-1 text-[11px] text-white/80 opacity-0 shadow-lg transition-opacity group-hover:opacity-100">
+              <span className="font-semibold">{score}</span>
+              <span className="mx-1 text-white/30">·</span>
+              <span className="text-white/50">{date}</span>
+            </div>
+          </div>
         )
       })}
     </div>
