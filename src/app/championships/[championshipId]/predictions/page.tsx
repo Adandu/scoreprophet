@@ -181,7 +181,7 @@ function H2HStrip({ json, homeTeam }: { json: string; homeTeam: string }) {
   const sorted = [...matches].sort((a, b) => b.utcDate.localeCompare(a.utcDate))
 
   return (
-    <div className="mt-2 flex flex-wrap items-center gap-1">
+    <div className="mt-2 flex flex-wrap items-center justify-center gap-1">
       {sorted.map((m) => {
         const isHome = m.homeTeam === homeTeam
         const hs = m.homeScore ?? 0
