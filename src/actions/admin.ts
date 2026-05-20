@@ -256,6 +256,7 @@ export async function syncMatchesFromApi(prevState: unknown) {
           scoreDuration: true,
           winnerTeam: true,
           headToHeadSyncedAt: true,
+          headToHeadJson: true,
           adminOverride: true,
         },
       })
@@ -329,7 +330,9 @@ export async function syncMatchesFromApi(prevState: unknown) {
 
       const h2hIsFresh = existing?.headToHeadSyncedAt && existing.headToHeadSyncedAt > staleH2HBefore
       const transitionedToFinished = existing?.status !== 'FINISHED' && m.status === 'FINISHED'
-      if (!h2hIsFresh || transitionedToFinished) {
+      // Skip API H2H fetch if we already have static data (headToHeadJson not empty)
+      const hasStaticH2H = existing?.headToHeadJson && existing.headToHeadJson !== '[]'
+      if (!hasStaticH2H && (!h2hIsFresh || transitionedToFinished)) {
         try {
           const headToHead = await fetchHeadToHead(m.externalId, 10)
           await prisma.match.update({
