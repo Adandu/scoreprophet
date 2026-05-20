@@ -130,6 +130,7 @@ def parse_h2h(html: str, home_name: str, away_name: str) -> list[dict]:
     matches = []
     for d, s in zip(dates, scores):
         utc_date = parse_date(d.group(1))
+        stage = re.sub(r'<[^>]+>', '', d.group(2)).strip()
         game_slug = s.group(1)
         home_score = int(s.group(2))
         away_score = int(s.group(3))
@@ -140,6 +141,7 @@ def parse_h2h(html: str, home_name: str, away_name: str) -> list[dict]:
             'awayTeam': away_name,
             'homeScore': home_score,
             'awayScore': away_score,
+            'competition': f"FIFA World Cup — {stage}" if stage else "FIFA World Cup",
         })
     return matches
 

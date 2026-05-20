@@ -1,7 +1,7 @@
 export interface StoredHeadToHeadMatch {
   id: string
   utcDate: string
-  competition: string
+  competition?: string
   homeTeam: string
   awayTeam: string
   homeScore: number | null
@@ -25,7 +25,7 @@ function isStoredHeadToHeadMatch(value: unknown): value is StoredHeadToHeadMatch
   return (
     typeof match.id === 'string' &&
     typeof match.utcDate === 'string' &&
-    typeof match.competition === 'string' &&
+    (typeof match.competition === 'string' || match.competition == null) &&
     typeof match.homeTeam === 'string' &&
     typeof match.awayTeam === 'string' &&
     (typeof match.homeScore === 'number' || match.homeScore === null) &&
