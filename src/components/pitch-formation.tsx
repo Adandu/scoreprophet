@@ -229,9 +229,9 @@ export function PitchFormation({ homeTeam, awayTeam, goals, bookings, substituti
             <div style={{
               background: 'repeating-linear-gradient(0deg, #236f23 0px, #236f23 26px, #28832a 26px, #28832a 52px)',
               position: 'relative', width: '100%',
-              aspectRatio: '105/68',
+              aspectRatio: '105/52',
               overflow: 'visible',
-              transform: 'rotateX(20deg)',
+              transform: 'rotateX(25deg)',
               transformOrigin: 'center bottom',
               transformStyle: 'preserve-3d',
               boxShadow: '0 20px 50px rgba(0,0,0,0.8), 0 0 0 2px rgba(255,255,255,0.13)',
