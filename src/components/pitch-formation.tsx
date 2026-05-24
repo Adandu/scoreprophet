@@ -196,7 +196,7 @@ export function PitchFormation({ homeTeam, awayTeam, goals, bookings, substituti
       <div style={{ display: 'flex', alignItems: 'stretch' }}>
 
         {/* Home bench */}
-        <div style={{ width: 108, flexShrink: 0, background: '#071120', display: 'flex', flexDirection: 'column', padding: '10px 8px', gap: 4, borderRight: '1px solid rgba(255,255,255,0.05)' }}>
+        <div style={{ width: 140, flexShrink: 0, background: '#071120', display: 'flex', flexDirection: 'column', padding: '10px 8px', gap: 4, borderRight: '1px solid rgba(255,255,255,0.05)' }}>
           <div style={{ fontSize: 9, fontWeight: 700, letterSpacing: '.08em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.25)', marginBottom: 4, paddingBottom: 4, borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
             {homeTeam.name} bench
           </div>
@@ -307,7 +307,7 @@ export function PitchFormation({ homeTeam, awayTeam, goals, bookings, substituti
         </div>
 
         {/* Away bench */}
-        <div style={{ width: 108, flexShrink: 0, background: '#071120', display: 'flex', flexDirection: 'column', padding: '10px 8px', gap: 4, borderLeft: '1px solid rgba(255,255,255,0.05)' }}>
+        <div style={{ width: 140, flexShrink: 0, background: '#071120', display: 'flex', flexDirection: 'column', padding: '10px 8px', gap: 4, borderLeft: '1px solid rgba(255,255,255,0.05)' }}>
           <div style={{ fontSize: 9, fontWeight: 700, letterSpacing: '.08em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.25)', marginBottom: 4, paddingBottom: 4, borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
             {awayTeam.name} bench
           </div>
