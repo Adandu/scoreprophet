@@ -85,14 +85,6 @@ function PlayerDot({ name, shirtNumber, isGk, gradientId, left, top, goalCount, 
         <span style={{ position: 'relative', zIndex: 2, fontSize: 15, fontWeight: 900, color: '#fff', textShadow: '0 1px 4px rgba(0,0,0,1)', marginTop: 12 }}>
           {shirtNumber}
         </span>
-        {cardColor && (
-          <span style={{
-            position: 'absolute', top: 2, right: 2, zIndex: 3,
-            display: 'block', width: 8, height: 11,
-            background: cardColor, borderRadius: 1.5,
-            boxShadow: '0 1px 3px rgba(0,0,0,0.8)',
-          }} />
-        )}
       </div>
       <span style={{
         display: 'flex', alignItems: 'center', gap: 2,
@@ -105,6 +97,7 @@ function PlayerDot({ name, shirtNumber, isGk, gradientId, left, top, goalCount, 
           {subMinute !== null && <span style={{ color: '#4ade80', marginLeft: 3, fontSize: 10 }}>↑{subMinute}&apos;</span>}
         </span>
         {goalCount > 0 && <span style={{ flexShrink: 0 }}>{'⚽'.repeat(Math.min(goalCount, 3))}</span>}
+        {cardColor && <span style={{ display: 'inline-block', width: 7, height: 10, background: cardColor, borderRadius: 1, flexShrink: 0, boxShadow: '0 1px 2px rgba(0,0,0,0.6)' }} />}
       </span>
     </div>
   )
