@@ -66,9 +66,9 @@ function PlayerDot({ name, shirtNumber, isGk, gradientId, left, top, goalCount, 
   const displayName = [
     name,
     goalCount > 0 ? '⚽'.repeat(Math.min(goalCount, 3)) : '',
-    yellowCards === 1 ? '🟨' : yellowCards >= 2 ? '🟥' : '',
-    redCard ? '🟥' : '',
   ].filter(Boolean).join(' ')
+
+  const cardColor = redCard || yellowCards >= 2 ? '#EF4444' : yellowCards === 1 ? '#FACC15' : null
 
   return (
     <div
@@ -92,12 +92,16 @@ function PlayerDot({ name, shirtNumber, isGk, gradientId, left, top, goalCount, 
         </span>
       </div>
       <span style={{
+        display: 'flex', alignItems: 'center', gap: 3,
         fontSize: 13, fontWeight: 700, color: '#fff', textAlign: 'center',
         whiteSpace: 'nowrap', maxWidth: 88, overflow: 'hidden', textOverflow: 'ellipsis',
         background: 'rgba(0,0,0,0.72)', borderRadius: 4, padding: '2px 6px',
       }}>
         {displayName}
         {subMinute !== null && <span style={{ color: '#4ade80', marginLeft: 3, fontSize: 10 }}>↑{subMinute}&apos;</span>}
+        {cardColor && (
+          <span style={{ display: 'inline-block', width: 7, height: 10, background: cardColor, borderRadius: 1, flexShrink: 0, boxShadow: '0 1px 2px rgba(0,0,0,0.6)' }} />
+        )}
       </span>
     </div>
   )

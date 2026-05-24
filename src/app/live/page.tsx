@@ -142,13 +142,13 @@ async function LiveMatchPanel({ liveMatch }: { liveMatch: NormalizedMatch }) {
       {(homeBookings.length > 0 || awayBookings.length > 0) && (
         <div className="overflow-hidden rounded-xl border border-white/10 bg-[#0a1628]">
           <div className="border-b border-white/5 px-4 py-2.5 text-xs font-bold uppercase tracking-widest text-white/40">
-            🟨 Cards
+            Cards
           </div>
           <div className="grid grid-cols-[1fr_1px_1fr]">
             <div className="flex flex-col gap-2 p-3">
               {homeBookings.map((b, i) => (
                 <div key={i} className="flex items-center gap-2 text-sm">
-                  <span>{b.card === 'YELLOW_CARD' ? '🟨' : '🟥'}</span>
+                  <CardBadge card={b.card} />
                   <span className="font-semibold text-white/80">{b.playerName}</span>
                   <span className="text-xs font-bold text-white/40">{b.minute}&apos;</span>
                 </div>
@@ -160,7 +160,7 @@ async function LiveMatchPanel({ liveMatch }: { liveMatch: NormalizedMatch }) {
                 <div key={i} className="flex items-center gap-2 text-sm">
                   <span className="text-xs font-bold text-white/40">{b.minute}&apos;</span>
                   <span className="font-semibold text-white/80">{b.playerName}</span>
-                  <span>{b.card === 'YELLOW_CARD' ? '🟨' : '🟥'}</span>
+                  <CardBadge card={b.card} />
                 </div>
               ))}
             </div>
@@ -202,6 +202,23 @@ async function LiveMatchPanel({ liveMatch }: { liveMatch: NormalizedMatch }) {
         </div>
       )}
     </div>
+  )
+}
+
+function CardBadge({ card }: { card: string }) {
+  const isRed = card === 'RED_CARD' || card === 'YELLOW_RED_CARD'
+  return (
+    <span
+      style={{
+        display: 'inline-block',
+        width: 10,
+        height: 14,
+        background: isRed ? '#EF4444' : '#FACC15',
+        borderRadius: 2,
+        flexShrink: 0,
+        boxShadow: '0 1px 3px rgba(0,0,0,0.5)',
+      }}
+    />
   )
 }
 
