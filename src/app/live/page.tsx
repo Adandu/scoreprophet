@@ -242,7 +242,7 @@ function MatchStatsRow({
           const h = get(homeId, type)
           const a = get(awayId, type)
           return (
-            <div key={type} className="grid grid-cols-[1fr_auto_1fr] items-center gap-x-2 py-1 text-sm">
+            <div key={type} className="grid grid-cols-[1fr_auto_1fr] items-center gap-x-6 py-1 text-sm">
               <span className="text-right font-bold text-white">{h}</span>
               <span className="text-center text-xs text-white/50">{label}</span>
               <span className="text-left font-bold text-white">{a}</span>
