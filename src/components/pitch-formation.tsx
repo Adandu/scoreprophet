@@ -170,13 +170,15 @@ export function PitchFormation({ homeTeam, awayTeam, goals, bookings, substituti
           <div style={{ fontSize: 9, fontWeight: 700, letterSpacing: '.08em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.3)' }}>Head Coach</div>
           <div style={{ fontSize: 12, fontWeight: 700, color: '#4ade80' }}>{homeTeam.coach ?? '—'}</div>
         </div>
-        {referee && (
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-            <div style={{ fontSize: 9, fontWeight: 700, letterSpacing: '.08em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.3)' }}>Referee</div>
-            <div style={{ fontSize: 11, fontWeight: 600, color: 'rgba(255,255,255,0.7)' }}>{referee.name}</div>
-            <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.35)' }}>{referee.nationality}</div>
-          </div>
-        )}
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+          {referee && (
+            <>
+              <div style={{ fontSize: 9, fontWeight: 700, letterSpacing: '.08em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.3)' }}>Referee</div>
+              <div style={{ fontSize: 11, fontWeight: 600, color: 'rgba(255,255,255,0.7)' }}>{referee.name}</div>
+              <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.35)' }}>{referee.nationality}</div>
+            </>
+          )}
+        </div>
         <div style={{ textAlign: 'right' }}>
           <div style={{ fontSize: 9, fontWeight: 700, letterSpacing: '.08em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.3)' }}>Head Coach</div>
           <div style={{ fontSize: 12, fontWeight: 700, color: '#93bbff' }}>{awayTeam.coach ?? '—'}</div>
@@ -201,6 +203,12 @@ export function PitchFormation({ homeTeam, awayTeam, goals, bookings, substituti
           {homeTeam.bench.map((p) => {
             const subMin = subOnMinutes.get(p.name.toLowerCase())
             const wasSubbedOut = homeBenchSubbed.has(p.name.toLowerCase())
+            const key = p.name.toLowerCase()
+            const keyL = key.split(' ').pop() ?? key
+            const goals = goalsByPlayer.get(key) ?? goalsByPlayer.get(keyL) ?? 0
+            const yellows = yellowsByPlayer.get(key) ?? yellowsByPlayer.get(keyL) ?? 0
+            const red = redsByPlayer.has(key) || redsByPlayer.has(keyL)
+            const cardColor = red || yellows >= 2 ? '#EF4444' : yellows === 1 ? '#FACC15' : null
             return (
               <div key={p.id} style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 11, color: wasSubbedOut ? 'rgba(255,255,255,0.35)' : 'rgba(255,255,255,0.73)', lineHeight: 1.5 }}>
                 <span style={{ fontSize: 10, fontWeight: 700, color: 'rgba(255,255,255,0.3)', width: 16, textAlign: 'right', flexShrink: 0 }}>{p.shirtNumber}</span>
@@ -208,6 +216,8 @@ export function PitchFormation({ homeTeam, awayTeam, goals, bookings, substituti
                 {subMin !== undefined && (
                   <span style={{ fontSize: 9, color: '#4ade80', fontWeight: 700, whiteSpace: 'nowrap' }}>↑{subMin}&apos;</span>
                 )}
+                {goals > 0 && <span style={{ fontSize: 10, flexShrink: 0 }}>{'⚽'.repeat(Math.min(goals, 3))}</span>}
+                {cardColor && <span style={{ display: 'inline-block', width: 6, height: 9, background: cardColor, borderRadius: 1, flexShrink: 0 }} />}
               </div>
             )
           })}
@@ -304,6 +314,12 @@ export function PitchFormation({ homeTeam, awayTeam, goals, bookings, substituti
           {awayTeam.bench.map((p) => {
             const subMin = subOnMinutes.get(p.name.toLowerCase())
             const wasSubbedOut = awayBenchSubbed.has(p.name.toLowerCase())
+            const key = p.name.toLowerCase()
+            const keyL = key.split(' ').pop() ?? key
+            const goals = goalsByPlayer.get(key) ?? goalsByPlayer.get(keyL) ?? 0
+            const yellows = yellowsByPlayer.get(key) ?? yellowsByPlayer.get(keyL) ?? 0
+            const red = redsByPlayer.has(key) || redsByPlayer.has(keyL)
+            const cardColor = red || yellows >= 2 ? '#EF4444' : yellows === 1 ? '#FACC15' : null
             return (
               <div key={p.id} style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 11, color: wasSubbedOut ? 'rgba(255,255,255,0.35)' : 'rgba(255,255,255,0.73)', lineHeight: 1.5 }}>
                 <span style={{ fontSize: 10, fontWeight: 700, color: 'rgba(255,255,255,0.3)', width: 16, textAlign: 'right', flexShrink: 0 }}>{p.shirtNumber}</span>
@@ -311,6 +327,8 @@ export function PitchFormation({ homeTeam, awayTeam, goals, bookings, substituti
                 {subMin !== undefined && (
                   <span style={{ fontSize: 9, color: '#93bbff', fontWeight: 700, whiteSpace: 'nowrap' }}>↑{subMin}&apos;</span>
                 )}
+                {goals > 0 && <span style={{ fontSize: 10, flexShrink: 0 }}>{'⚽'.repeat(Math.min(goals, 3))}</span>}
+                {cardColor && <span style={{ display: 'inline-block', width: 6, height: 9, background: cardColor, borderRadius: 1, flexShrink: 0 }} />}
               </div>
             )
           })}
