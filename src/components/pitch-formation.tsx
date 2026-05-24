@@ -63,11 +63,6 @@ interface PlayerDotProps {
 }
 
 function PlayerDot({ name, shirtNumber, isGk, gradientId, left, top, goalCount, yellowCards, redCard, subMinute }: PlayerDotProps) {
-  const displayName = [
-    name,
-    goalCount > 0 ? '⚽'.repeat(Math.min(goalCount, 3)) : '',
-  ].filter(Boolean).join(' ')
-
   const cardColor = redCard || yellowCards >= 2 ? '#EF4444' : yellowCards === 1 ? '#FACC15' : null
 
   return (
@@ -100,12 +95,16 @@ function PlayerDot({ name, shirtNumber, isGk, gradientId, left, top, goalCount, 
         )}
       </div>
       <span style={{
-        fontSize: 13, fontWeight: 700, color: '#fff', textAlign: 'center',
-        whiteSpace: 'nowrap', maxWidth: 88, overflow: 'hidden', textOverflow: 'ellipsis',
+        display: 'flex', alignItems: 'center', gap: 2,
+        fontSize: 13, fontWeight: 700, color: '#fff',
         background: 'rgba(0,0,0,0.72)', borderRadius: 4, padding: '2px 6px',
+        maxWidth: 96,
       }}>
-        {displayName}
-        {subMinute !== null && <span style={{ color: '#4ade80', marginLeft: 3, fontSize: 10 }}>↑{subMinute}&apos;</span>}
+        <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1, minWidth: 0 }}>
+          {name}
+          {subMinute !== null && <span style={{ color: '#4ade80', marginLeft: 3, fontSize: 10 }}>↑{subMinute}&apos;</span>}
+        </span>
+        {goalCount > 0 && <span style={{ flexShrink: 0 }}>{'⚽'.repeat(Math.min(goalCount, 3))}</span>}
       </span>
     </div>
   )
@@ -119,19 +118,28 @@ export function PitchFormation({ homeTeam, awayTeam, goals, bookings, substituti
   const homePositions = computeFormationPositions(homeTeam.formation, 'home')
   const awayPositions = computeFormationPositions(awayTeam.formation, 'away')
 
-  // Build per-player event maps keyed by player name (lowercase)
+  // Build per-player event maps keyed by full lowercase name AND last word (for API name-format mismatches)
   const goalsByPlayer = new Map<string, number>()
   for (const g of goals) {
-    const key = g.playerName.toLowerCase()
-    goalsByPlayer.set(key, (goalsByPlayer.get(key) ?? 0) + 1)
+    const full = g.playerName.toLowerCase()
+    const last = full.split(' ').pop() ?? full
+    goalsByPlayer.set(full, (goalsByPlayer.get(full) ?? 0) + 1)
+    goalsByPlayer.set(last, (goalsByPlayer.get(last) ?? 0) + 1)
   }
 
   const yellowsByPlayer = new Map<string, number>()
   const redsByPlayer = new Set<string>()
   for (const b of bookings) {
-    const key = b.playerName.toLowerCase()
-    if (b.card === 'YELLOW_CARD') yellowsByPlayer.set(key, (yellowsByPlayer.get(key) ?? 0) + 1)
-    if (b.card === 'RED_CARD' || b.card === 'YELLOW_RED_CARD') redsByPlayer.add(key)
+    const full = b.playerName.toLowerCase()
+    const last = full.split(' ').pop() ?? full
+    if (b.card === 'YELLOW_CARD') {
+      yellowsByPlayer.set(full, (yellowsByPlayer.get(full) ?? 0) + 1)
+      yellowsByPlayer.set(last, (yellowsByPlayer.get(last) ?? 0) + 1)
+    }
+    if (b.card === 'RED_CARD' || b.card === 'YELLOW_RED_CARD') {
+      redsByPlayer.add(full)
+      redsByPlayer.add(last)
+    }
   }
 
   const subOnMinutes = new Map<string, number>()
