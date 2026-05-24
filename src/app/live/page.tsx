@@ -77,10 +77,12 @@ async function LiveMatchPanel({ liveMatch }: { liveMatch: NormalizedMatch }) {
   return (
     <div className="space-y-4">
       {/* Score header */}
-      <div className="flex items-center justify-between rounded-xl border border-white/10 bg-[#0a1628] px-8 py-5">
-        <TeamBlock name={details.homeTeam.name} crest={details.homeTeam.crest} />
+      <div className="flex items-center rounded-xl border border-white/10 bg-[#0a1628] px-8 py-5">
+        <div className="flex flex-1 justify-center">
+          <TeamBlock name={details.homeTeam.name} crest={details.homeTeam.crest} />
+        </div>
 
-        <div className="flex flex-col items-center gap-1.5">
+        <div className="flex shrink-0 flex-col items-center gap-1.5">
           {details.halftime ? (
             <div className="flex items-center gap-2 rounded-full bg-blue-950 px-3 py-0.5">
               <span className="text-xs font-bold uppercase tracking-widest text-blue-300">Half Time</span>
@@ -104,7 +106,9 @@ async function LiveMatchPanel({ liveMatch }: { liveMatch: NormalizedMatch }) {
           )}
         </div>
 
-        <TeamBlock name={details.awayTeam.name} crest={details.awayTeam.crest} />
+        <div className="flex flex-1 justify-center">
+          <TeamBlock name={details.awayTeam.name} crest={details.awayTeam.crest} />
+        </div>
       </div>
 
       {/* 3D Pitch — hidden on mobile via injected media query */}
