@@ -437,7 +437,7 @@ export async function fetchLiveMatchDetails(matchId: string | number): Promise<L
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const referees: any[] = m.referees ?? []
-  const referee = referees.find((r) => r.role === 'REFEREE') ?? referees[0] ?? null
+  const referee = referees.find((r) => r.role === 'REFEREE' || r.type === 'REFEREE') ?? referees[0] ?? null
 
   // Extract per-team statistics from the new API format (homeTeam.statistics / awayTeam.statistics as objects)
   let homePossession: number | null = null
