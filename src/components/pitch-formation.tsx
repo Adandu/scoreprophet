@@ -240,6 +240,7 @@ export function PitchFormation({ homeTeam, awayTeam, goals, bookings, substituti
               {homeTeam.lineup.map((player, i) => {
                 const pos = homePositions[i] ?? { left: 25, top: 50 }
                 const key = player.name.toLowerCase()
+                const keyL = key.split(' ').pop() ?? key
                 return (
                   <PlayerDot
                     key={player.id}
@@ -249,9 +250,9 @@ export function PitchFormation({ homeTeam, awayTeam, goals, bookings, substituti
                     gradientId={homeGradId}
                     left={pos.left}
                     top={pos.top}
-                    goalCount={goalsByPlayer.get(key) ?? 0}
-                    yellowCards={yellowsByPlayer.get(key) ?? 0}
-                    redCard={redsByPlayer.has(key)}
+                    goalCount={goalsByPlayer.get(key) ?? goalsByPlayer.get(keyL) ?? 0}
+                    yellowCards={yellowsByPlayer.get(key) ?? yellowsByPlayer.get(keyL) ?? 0}
+                    redCard={redsByPlayer.has(key) || redsByPlayer.has(keyL)}
                     subMinute={null}
                   />
                 )
@@ -261,6 +262,7 @@ export function PitchFormation({ homeTeam, awayTeam, goals, bookings, substituti
               {awayTeam.lineup.map((player, i) => {
                 const pos = awayPositions[i] ?? { left: 75, top: 50 }
                 const key = player.name.toLowerCase()
+                const keyL = key.split(' ').pop() ?? key
                 return (
                   <PlayerDot
                     key={player.id}
@@ -270,9 +272,9 @@ export function PitchFormation({ homeTeam, awayTeam, goals, bookings, substituti
                     gradientId={awayGradId}
                     left={pos.left}
                     top={pos.top}
-                    goalCount={goalsByPlayer.get(key) ?? 0}
-                    yellowCards={yellowsByPlayer.get(key) ?? 0}
-                    redCard={redsByPlayer.has(key)}
+                    goalCount={goalsByPlayer.get(key) ?? goalsByPlayer.get(keyL) ?? 0}
+                    yellowCards={yellowsByPlayer.get(key) ?? yellowsByPlayer.get(keyL) ?? 0}
+                    redCard={redsByPlayer.has(key) || redsByPlayer.has(keyL)}
                     subMinute={null}
                   />
                 )

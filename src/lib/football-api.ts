@@ -98,6 +98,7 @@ export interface LiveMatchEvent {
   teamName: string
   playerName: string
   assistName?: string
+  type?: string
 }
 
 export interface LiveMatchSubstitution {
@@ -483,6 +484,7 @@ export async function fetchLiveMatchDetails(matchId: string | number): Promise<L
       teamName: g.team?.name ?? '',
       playerName: g.scorer?.name ?? '',
       assistName: g.assist?.name ?? undefined,
+      type: g.type ?? undefined,
     })),
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     bookings: (m.bookings ?? []).map((b: any): LiveMatchBooking => ({

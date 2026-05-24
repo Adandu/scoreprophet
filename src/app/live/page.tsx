@@ -58,8 +58,18 @@ async function LiveMatchPanel({ liveMatch }: { liveMatch: NormalizedMatch }) {
 
   const homeGoals = details.goals.filter((g) => g.teamId === homeId)
   const awayGoals = details.goals.filter((g) => g.teamId === awayId)
-  const homeBookings = details.bookings.filter((b) => b.teamId === homeId)
-  const awayBookings = details.bookings.filter((b) => b.teamId === awayId)
+  function mergeBookings(bookings: typeof details.bookings) {
+    const yellows: Record<string, number> = {}
+    return bookings.map(b => {
+      if (b.card === 'YELLOW_CARD') {
+        yellows[b.playerName] = (yellows[b.playerName] ?? 0) + 1
+        if (yellows[b.playerName] >= 2) return { ...b, card: 'YELLOW_RED_CARD' as const }
+      }
+      return b
+    })
+  }
+  const homeBookings = mergeBookings(details.bookings.filter((b) => b.teamId === homeId))
+  const awayBookings = mergeBookings(details.bookings.filter((b) => b.teamId === awayId))
   const homeSubs = details.substitutions.filter((s) => s.teamId === homeId)
   const awaySubs = details.substitutions.filter((s) => s.teamId === awayId)
 
@@ -133,6 +143,7 @@ async function LiveMatchPanel({ liveMatch }: { liveMatch: NormalizedMatch }) {
                 <div key={i} className="flex items-center gap-2 text-sm">
                   <span className="text-green-400">⚽</span>
                   <span className="font-semibold text-white/80">{g.playerName}</span>
+                  {g.type === 'OWN_GOAL' && <span className="text-xs font-bold text-orange-400">OG</span>}
                   <span className="text-xs font-bold text-white/40">{g.minute}&apos;</span>
                 </div>
               ))}
@@ -142,6 +153,7 @@ async function LiveMatchPanel({ liveMatch }: { liveMatch: NormalizedMatch }) {
               {awayGoals.map((g, i) => (
                 <div key={i} className="flex items-center gap-2 text-sm">
                   <span className="text-xs font-bold text-white/40">{g.minute}&apos;</span>
+                  {g.type === 'OWN_GOAL' && <span className="text-xs font-bold text-orange-400">OG</span>}
                   <span className="font-semibold text-white/80">{g.playerName}</span>
                   <span className="text-blue-400">⚽</span>
                 </div>
