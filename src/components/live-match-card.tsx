@@ -66,10 +66,12 @@ export function LiveMatchCard({ match, timezone, countdown, headToHead = [], rev
           {match.status === 'FINISHED' ? 'Final Score' : `Kickoff: ${formatMatchTime(match.kickoff, timezone)}`}
         </p>
       )}
-      <div className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-start gap-2 sm:items-center sm:gap-8">
-        <TeamBlock name={match.homeTeam} crest={match.homeTeamCrest} href={match.homeTeamUrl} />
+      <div className="flex items-start gap-2 sm:items-center sm:gap-8">
+        <div className="flex flex-1 justify-center">
+          <TeamBlock name={match.homeTeam} crest={match.homeTeamCrest} href={match.homeTeamUrl} />
+        </div>
 
-        <div className="flex min-h-16 items-center justify-center pt-2 sm:pt-0">
+        <div className="flex shrink-0 min-h-16 items-center justify-center pt-2 sm:pt-0">
           <span className="grid grid-cols-[2ch_auto_2ch] items-center gap-1 text-center text-3xl font-bold tabular-nums text-[#C9A84C] sm:text-5xl">
             <span className="text-right">{match.homeScore ?? '-'}</span>
             <span className="text-center text-white/35">:</span>
@@ -77,7 +79,9 @@ export function LiveMatchCard({ match, timezone, countdown, headToHead = [], rev
           </span>
         </div>
 
-        <TeamBlock name={match.awayTeam} crest={match.awayTeamCrest} href={match.awayTeamUrl} />
+        <div className="flex flex-1 justify-center">
+          <TeamBlock name={match.awayTeam} crest={match.awayTeamCrest} href={match.awayTeamUrl} />
+        </div>
       </div>
       {countdown && (
         <div className="mt-6 border-t border-white/10 pt-4">
