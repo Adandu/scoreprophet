@@ -70,14 +70,22 @@ async function LiveMatchPanel({ liveMatch }: { liveMatch: NormalizedMatch }) {
         <TeamBlock name={details.homeTeam.name} crest={details.homeTeam.crest} />
 
         <div className="flex flex-col items-center gap-1.5">
-          <div className="flex items-center gap-2 rounded-full bg-red-950 px-3 py-0.5">
-            <span className="h-2 w-2 animate-pulse rounded-full bg-red-500" />
-            <span className="text-xs font-bold uppercase tracking-widest text-red-300">Live</span>
-          </div>
+          {details.halftime ? (
+            <div className="flex items-center gap-2 rounded-full bg-blue-950 px-3 py-0.5">
+              <span className="text-xs font-bold uppercase tracking-widest text-blue-300">Half Time</span>
+            </div>
+          ) : (
+            <div className="flex items-center gap-2 rounded-full bg-red-950 px-3 py-0.5">
+              <span className="h-2 w-2 animate-pulse rounded-full bg-red-500" />
+              <span className="text-xs font-bold uppercase tracking-widest text-red-300">Live</span>
+            </div>
+          )}
           <div className="text-5xl font-black tabular-nums text-[#C9A84C]">
             {homeScore} <span className="text-white/30">:</span> {awayScore}
           </div>
-          {details.minute !== null && (
+          {details.halftime ? (
+            <div className="text-sm font-bold text-white/50">HT</div>
+          ) : details.minute !== null && (
             <div className="text-sm text-white/50">{details.minute}&apos;</div>
           )}
           {details.venue && (

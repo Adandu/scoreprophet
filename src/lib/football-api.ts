@@ -126,6 +126,7 @@ export interface LiveMatchDetails {
   substitutions: LiveMatchSubstitution[]
   teamStats: Array<{ teamId: string; teamName: string; type: 'CORNERS' | 'FREE_KICKS' | 'GOAL_KICKS' | 'OFFSIDES' | 'FOULS' | 'SAVES' | 'THROW_INS' | 'SHOTS_ON_GOAL' | 'SHOTS_OFF_GOAL' | 'YELLOW_CARDS' | 'RED_CARDS'; value: number }>
   homePossession: number | null  // 0–100, null if not available
+  halftime: boolean
 }
 
 const STAGE_MAP: Record<string, Stage> = {
@@ -244,7 +245,7 @@ export async function fetchLiveMatch(): Promise<NormalizedMatch | null> {
 
 export async function fetchLiveMatches(): Promise<NormalizedMatch[]> {
   const res = await fetch(
-    `${BASE_URL}/competitions/${COMPETITION}/matches?status=IN_PLAY`,
+    `${BASE_URL}/competitions/${COMPETITION}/matches?status=IN_PLAY,PAUSED`,
     {
       headers: getHeaders(),
       next: { revalidate: 5 },
@@ -500,6 +501,7 @@ export async function fetchLiveMatchDetails(matchId: string | number): Promise<L
     })),
     teamStats,
     homePossession,
+    halftime: m.status === 'PAUSED',
   }
 }
 
