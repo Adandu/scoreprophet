@@ -21,7 +21,7 @@ export default async function ChampionshipPredictionsPage({ params }: { params: 
 
   const [matches, userPredictions, userAdvances, dbTeams, firstGroupMatch, winnerPrediction] = await Promise.all([
     prisma.match.findMany({
-      where: { status: { not: 'FINISHED' }, competitionCode: championship.competitionCode },
+      where: { status: { not: 'FINISHED' } },
       orderBy: { kickoff: 'asc' },
       select: {
         id: true, externalId: true, homeTeam: true, awayTeam: true,
@@ -32,7 +32,7 @@ export default async function ChampionshipPredictionsPage({ params }: { params: 
     prisma.prediction.findMany({ where: { userId: session.userId, championshipId } }),
     prisma.knockoutAdvance.findMany({ where: { userId: session.userId, championshipId } }),
     prisma.team.findMany({ orderBy: { name: 'asc' }, select: { name: true, shortName: true, crest: true } }),
-    prisma.match.findFirst({ where: { stage: 'GROUP', competitionCode: championship.competitionCode }, orderBy: { kickoff: 'asc' }, select: { kickoff: true } }),
+    prisma.match.findFirst({ where: { stage: 'GROUP' }, orderBy: { kickoff: 'asc' }, select: { kickoff: true } }),
     prisma.tournamentWinnerPrediction.findFirst({ where: { userId: session.userId, championshipId } }),
   ])
 
@@ -68,14 +68,6 @@ export default async function ChampionshipPredictionsPage({ params }: { params: 
     return acc
   }, {} as Record<Stage, typeof matches>)
 
-  const sortedStages = STAGE_ORDER
-    .filter((s) => grouped[s].length > 0)
-    .sort((a, b) => {
-      const aTime = grouped[a][0]?.kickoff?.getTime() ?? 0
-      const bTime = grouped[b][0]?.kickoff?.getTime() ?? 0
-      return aTime - bTime
-    })
-
   const now = new Date()
 
   return (
@@ -100,7 +92,7 @@ export default async function ChampionshipPredictionsPage({ params }: { params: 
         />
       </section>
 
-      {sortedStages.map((stage) => {
+      {STAGE_ORDER.filter((stage) => grouped[stage]?.length > 0).map((stage) => {
         const stageMatches = grouped[stage]
         if (!stageMatches.length) return null
         return (
