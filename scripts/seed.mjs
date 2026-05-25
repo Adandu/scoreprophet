@@ -75,6 +75,7 @@ function normalizeMatch(match) {
           ? awayTeam
           : null
       : null,
+    competitionCode: COMPETITION,
   }
 }
 

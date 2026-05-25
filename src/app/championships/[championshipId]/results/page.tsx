@@ -39,7 +39,7 @@ export default async function ChampionshipResultsPage({ params }: { params: Prom
   const members = championship.members.map((member) => member.user)
 
   const matches = await prisma.match.findMany({
-    where: { status: { in: ['FINISHED', 'LIVE'] } },
+    where: { status: { in: ['FINISHED', 'LIVE'] }, competitionCode: championship.competitionCode },
     orderBy: { kickoff: 'desc' },
     include: {
       predictions: { where: { userId: { in: memberIds } }, include: { user: true } },

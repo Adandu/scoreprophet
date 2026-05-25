@@ -32,6 +32,7 @@ model Championship {
   description         String               @default("")
   isActive            Boolean              @default(true)
   doubleChanceEnabled Boolean              @default(true)
+  competitionCode     String               @default("WC")
   createdAt           DateTime             @default(now())
   updatedAt           DateTime             @updatedAt
   members             ChampionshipMember[]
@@ -98,6 +99,7 @@ model Match {
   homeScore                  Int?
   awayScore                  Int?
   winnerTeam                 String?
+  competitionCode            String            @default("WC")
   adminOverride              Boolean           @default(false)
   headToHeadHomeTeamId       String?
   headToHeadAwayTeamId       String?
