@@ -31,5 +31,13 @@ echo "[startup] Starting match statistics sync loop..."
   done
 ) &
 
+echo "[startup] Starting live score sync loop..."
+(
+  while true; do
+    sleep 60
+    node scripts/sync-scores.mjs || echo "[score-sync] Sync skipped"
+  done
+) &
+
 echo "[startup] Starting Next.js server..."
 exec node server.js

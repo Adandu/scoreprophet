@@ -4,11 +4,15 @@ import { fetchLiveMatches, fetchLiveMatchDetails, type NormalizedMatch } from '@
 import { PitchFormation } from '@/components/pitch-formation'
 import { LivePageRefresh } from '@/components/live-page-refresh'
 import { requireAuth } from '@/lib/auth'
+import { prisma } from '@/lib/db'
 
 export const revalidate = 5
 
 export default async function LivePage() {
   await requireAuth()
+
+  const now = new Date()
+  const soonCutoff = new Date(now.getTime() + 15 * 60 * 1000)
 
   let liveMatches: NormalizedMatch[]
   try {
@@ -17,7 +21,14 @@ export default async function LivePage() {
     liveMatches = []
   }
 
-  if (liveMatches.length === 0) {
+  const upcomingMatches = await prisma.match.findMany({
+    where: { status: 'SCHEDULED', kickoff: { gte: now, lte: soonCutoff } },
+    orderBy: { kickoff: 'asc' },
+  })
+
+  const hasActivity = liveMatches.length > 0 || upcomingMatches.length > 0
+
+  if (!hasActivity) {
     return (
       <div className="flex flex-col items-center justify-center gap-4 py-24 text-center">
         <div className="text-5xl">⚽</div>
@@ -29,7 +40,10 @@ export default async function LivePage() {
 
   return (
     <div className="space-y-8">
-      <LivePageRefresh isLive={true} />
+      <LivePageRefresh isLive={hasActivity} />
+      {upcomingMatches.map((match) => (
+        <PreMatchPanel key={match.id} match={match} now={now} />
+      ))}
       {liveMatches.map((liveMatch) => (
         <LiveMatchPanel key={liveMatch.externalId} liveMatch={liveMatch} />
       ))}
@@ -311,6 +325,38 @@ function TeamBlock({ name, crest }: { name: string; crest: string }) {
         <div className="flex h-[68px] w-[68px] items-center justify-center rounded-full border border-white/10 bg-white/10 text-4xl">⚽</div>
       )}
       <span className="text-center text-base font-bold text-white">{name}</span>
+    </div>
+  )
+}
+
+function PreMatchPanel({ match, now }: { match: { id: number; homeTeam: string; awayTeam: string; homeTeamCrest: string; awayTeamCrest: string; kickoff: Date }; now: Date }) {
+  const msUntil = match.kickoff.getTime() - now.getTime()
+  const minsUntil = Math.max(0, Math.floor(msUntil / 60000))
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center rounded-xl border border-white/10 bg-[#0a1628] px-8 py-5">
+        <div className="flex flex-1 justify-center">
+          <TeamBlock name={match.homeTeam} crest={match.homeTeamCrest} />
+        </div>
+
+        <div className="flex shrink-0 flex-col items-center gap-1.5">
+          <div className="flex items-center gap-2 rounded-full bg-amber-950 px-3 py-0.5">
+            <span className="h-2 w-2 animate-pulse rounded-full bg-amber-400" />
+            <span className="text-xs font-bold uppercase tracking-widest text-amber-300">Starting soon</span>
+          </div>
+          <div className="text-5xl font-black tabular-nums text-white/20">
+            - <span className="text-white/15">:</span> -
+          </div>
+          <div className="text-sm text-white/50">
+            {minsUntil === 0 ? 'Kick-off now' : `in ${minsUntil} min`}
+          </div>
+        </div>
+
+        <div className="flex flex-1 justify-center">
+          <TeamBlock name={match.awayTeam} crest={match.awayTeamCrest} />
+        </div>
+      </div>
     </div>
   )
 }
