@@ -7,6 +7,8 @@ const dbUrl = (process.env.DATABASE_URL ?? 'file:./dev.db').replace(/^file:/, ''
 const adapter = new PrismaBetterSqlite3({ url: dbUrl })
 const prisma = new PrismaClient({ adapter })
 
+const SCORING = { EXACT_SCORE: 5, SINGLE_OUTCOME: 3, DOUBLE_CHANCE: 1, ADVANCE: 1, TOURNAMENT_WINNER: 50 }
+
 const STATUS_MAP = {
   SCHEDULED: 'SCHEDULED', TIMED: 'SCHEDULED',
   IN_PLAY: 'LIVE', PAUSED: 'LIVE',
@@ -45,14 +47,14 @@ function extractScores(apiScore) {
 
 function calcPredictionPoints(type, value, homeScore, awayScore) {
   const outcome = homeScore > awayScore ? '1' : homeScore === awayScore ? 'X' : '2'
-  if (type === 'SINGLE_OUTCOME') return value === outcome ? 3 : 0
+  if (type === 'SINGLE_OUTCOME') return value === outcome ? SCORING.SINGLE_OUTCOME : 0
   if (type === 'DOUBLE_CHANCE') {
     const map = { '1X': ['1', 'X'], 'X2': ['X', '2'], '12': ['1', '2'] }
-    return (map[value] ?? []).includes(outcome) ? 1 : 0
+    return (map[value] ?? []).includes(outcome) ? SCORING.DOUBLE_CHANCE : 0
   }
   if (type === 'EXACT_SCORE') {
     const [h, a] = value.split('-').map(Number)
-    return h === homeScore && a === awayScore ? 5 : 0
+    return h === homeScore && a === awayScore ? SCORING.EXACT_SCORE : 0
   }
   return 0
 }
@@ -89,7 +91,7 @@ async function recalculateMatchPoints(match) {
       for (const wp of winnerPreds) {
         ops.push(prisma.tournamentWinnerPrediction.update({
           where: { id: wp.id },
-          data: { pointsAwarded: wp.predictedTeam === match.winnerTeam ? 50 : 0 },
+          data: { pointsAwarded: wp.predictedTeam === match.winnerTeam ? SCORING.TOURNAMENT_WINNER : 0 },
         }))
       }
     }
