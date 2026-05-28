@@ -36,7 +36,7 @@ export default async function ChampionshipPredictionsPage({ params }: { params: 
     prisma.prediction.findMany({ where: { userId: session.userId, championshipId } }),
     prisma.knockoutAdvance.findMany({ where: { userId: session.userId, championshipId } }),
     prisma.team.findMany({ orderBy: { name: 'asc' }, select: { name: true, shortName: true, crest: true } }),
-    prisma.match.findFirst({ where: { stage: 'GROUP' }, orderBy: { kickoff: 'asc' }, select: { kickoff: true } }),
+    prisma.match.findFirst({ where: { stage: 'GROUP', competitionCode: championship.competitionCode }, orderBy: { kickoff: 'asc' }, select: { kickoff: true } }),
     prisma.tournamentWinnerPrediction.findFirst({ where: { userId: session.userId, championshipId } }),
   ])
 

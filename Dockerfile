@@ -49,6 +49,7 @@ COPY --from=builder /app/prisma.config.ts ./prisma.config.ts
 COPY --from=prod-deps /app/node_modules ./node_modules
 
 COPY --from=builder /app/scripts/seed.mjs ./scripts/seed.mjs
+COPY --from=builder /app/scripts/sync-scores.mjs ./scripts/sync-scores.mjs
 COPY --from=builder /app/scripts/sync-head-to-head.mjs ./scripts/sync-head-to-head.mjs
 COPY --from=builder /app/scripts/send-prediction-reminders.mjs ./scripts/send-prediction-reminders.mjs
 COPY --from=builder /app/scripts/sync-match-statistics.mjs ./scripts/sync-match-statistics.mjs
