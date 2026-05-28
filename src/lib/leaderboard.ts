@@ -28,33 +28,32 @@ export async function getRankedUsers(
 
   return users
     .map((u) => {
-      const exactPts = u.predictions
-        .filter((p) => p.type === 'EXACT_SCORE')
-        .reduce((sum, p) => sum + (p.pointsAwarded ?? 0), 0)
-      const singlePts = u.predictions
-        .filter((p) => p.type === 'SINGLE_OUTCOME')
-        .reduce((sum, p) => sum + (p.pointsAwarded ?? 0), 0)
-      const doublePts = u.predictions
-        .filter((p) => p.type === 'DOUBLE_CHANCE')
-        .reduce((sum, p) => sum + (p.pointsAwarded ?? 0), 0)
+      const pred = u.predictions.reduce(
+        (acc, p) => {
+          const pts = p.pointsAwarded ?? 0
+          if (p.type === 'EXACT_SCORE') { acc.exactPts += pts; if (pts > 0) acc.exact++ }
+          else if (p.type === 'SINGLE_OUTCOME') { acc.singlePts += pts; if (pts > 0) acc.single++ }
+          else if (p.type === 'DOUBLE_CHANCE') { acc.doublePts += pts; if (pts > 0) acc.double++ }
+          return acc
+        },
+        { exactPts: 0, singlePts: 0, doublePts: 0, exact: 0, single: 0, double: 0 }
+      )
       const advancePts = u.advances.reduce((sum, a) => sum + (a.pointsAwarded ?? 0), 0)
+      const advance = u.advances.filter((a) => (a.pointsAwarded ?? 0) > 0).length
       const winnerPts = u.winnerPredictions.reduce((sum, w) => sum + (w.pointsAwarded ?? 0), 0)
+      const winner = u.winnerPredictions.filter((w) => (w.pointsAwarded ?? 0) > 0).length
 
       const result: RankedUser = {
         id: u.id,
         username: u.username,
-        total: exactPts + singlePts + (championship.doubleChanceEnabled ? doublePts : 0) + advancePts + winnerPts,
-        exact: u.predictions.filter((p) => p.type === 'EXACT_SCORE' && (p.pointsAwarded ?? 0) > 0).length,
-        single: u.predictions.filter((p) => p.type === 'SINGLE_OUTCOME' && (p.pointsAwarded ?? 0) > 0).length,
-        advance: u.advances.filter((a) => (a.pointsAwarded ?? 0) > 0).length,
-        winner: u.winnerPredictions.filter((w) => (w.pointsAwarded ?? 0) > 0).length,
+        total: pred.exactPts + pred.singlePts + (championship.doubleChanceEnabled ? pred.doublePts : 0) + advancePts + winnerPts,
+        exact: pred.exact,
+        single: pred.single,
+        advance,
+        winner,
       }
 
-      if (championship.doubleChanceEnabled) {
-        result.double = u.predictions.filter(
-          (p) => p.type === 'DOUBLE_CHANCE' && (p.pointsAwarded ?? 0) > 0
-        ).length
-      }
+      if (championship.doubleChanceEnabled) result.double = pred.double
 
       return result
     })
