@@ -40,6 +40,8 @@ model Championship {
   invites             ChampionshipInvite[]
   predictionReminders PredictionReminder[]
   winnerPredictions   TournamentWinnerPrediction[]
+
+  @@index([competitionCode])
 }
 
 model ChampionshipMember {
@@ -110,6 +112,10 @@ model Match {
   predictionReminders        PredictionReminder[]
   events                     MatchEvent[]
   teamStats                  MatchTeamStat[]
+
+  @@index([status])
+  @@index([kickoff])
+  @@index([competitionCode, stage])
 }
 
 model Team {
@@ -161,6 +167,7 @@ model KnockoutAdvance {
   match          Match    @relation(fields: [matchId], references: [id])
 
   @@unique([userId, matchId, championshipId])
+  @@index([matchId])
 }
 
 model TournamentWinnerPrediction {
@@ -175,6 +182,7 @@ model TournamentWinnerPrediction {
   championship   Championship @relation(fields: [championshipId], references: [id], onDelete: Cascade)
 
   @@unique([userId, championshipId])
+  @@index([championshipId])
 }
 
 model PasswordResetToken {
