@@ -48,12 +48,10 @@ export default async function ChampionshipResultsPage({
   const memberIds = championship.members.map((member) => member.userId)
   const members = championship.members.map((member) => member.user)
 
-  const matchWhere = { status: { in: ['FINISHED', 'LIVE'] } } as const
-
   const [totalMatches, matches] = await Promise.all([
-    prisma.match.count({ where: matchWhere }),
+    prisma.match.count({ where: { status: { in: ['FINISHED', 'LIVE'] } } }),
     prisma.match.findMany({
-      where: matchWhere,
+      where: { status: { in: ['FINISHED', 'LIVE'] } },
       orderBy: { kickoff: 'desc' },
       take: PAGE_SIZE,
       skip: (page - 1) * PAGE_SIZE,
