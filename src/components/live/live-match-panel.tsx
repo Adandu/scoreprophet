@@ -78,6 +78,11 @@ export async function LiveMatchPanel({ liveMatch, prefetchedDetails }: { liveMat
                 {details.minute !== null && details.minute > 45 ? 'ET Break' : 'Half Time'}
               </span>
             </div>
+          ) : liveMatch.scoreDuration === 'PENALTY_SHOOTOUT' ? (
+            <div className="flex items-center gap-2 rounded-full bg-purple-950 px-3 py-0.5">
+              <span className="h-2 w-2 animate-pulse rounded-full bg-purple-400" />
+              <span className="text-xs font-bold uppercase tracking-widest text-purple-300">Penalties</span>
+            </div>
           ) : (
             <div className="flex items-center gap-2 rounded-full bg-red-950 px-3 py-0.5">
               <span className="h-2 w-2 animate-pulse rounded-full bg-red-500" />
@@ -89,6 +94,8 @@ export async function LiveMatchPanel({ liveMatch, prefetchedDetails }: { liveMat
           </div>
           {liveMatch.status !== 'FINISHED' && (details.halftime ? (
             <div className="text-sm font-bold text-white/50">{details.minute !== null && details.minute > 45 ? 'ET' : 'HT'}</div>
+          ) : liveMatch.scoreDuration === 'PENALTY_SHOOTOUT' ? (
+            <div className="text-sm font-bold text-white/50">Pens</div>
           ) : details.minute !== null && (
             <div className="text-sm text-white/50">{fmtMin(details.minute, details.injuryTime, liveMatch.scoreDuration)}</div>
           ))}
