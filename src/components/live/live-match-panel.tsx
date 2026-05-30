@@ -4,9 +4,13 @@ import { TeamBlock } from './team-block'
 import { CardBadge } from './card-badge'
 import { MatchStatsRow } from './match-stats-row'
 
-function fmtMin(minute: number, injuryTime?: number | null): string {
-  const extra = injuryTime != null && injuryTime > 0 ? `+${injuryTime}` : ''
-  return `${minute}${extra}'`
+function fmtMin(minute: number, injuryTime?: number | null, scoreDuration?: string): string {
+  if (injuryTime != null && injuryTime > 0) return `${minute}+${injuryTime}'`
+  const isET = scoreDuration === 'EXTRA_TIME' || scoreDuration === 'PENALTY_SHOOTOUT'
+  if (minute > 120) return `120+${minute - 120}'`
+  if (minute > 105 && isET) return `105+${minute - 105}'`
+  if (minute > 90 && !isET) return `90+${minute - 90}'`
+  return `${minute}'`
 }
 
 function mergeBookings(bookings: Awaited<ReturnType<typeof fetchLiveMatchDetails>>['bookings']) {
@@ -87,7 +91,7 @@ export async function LiveMatchPanel({ liveMatch, prefetchedDetails }: { liveMat
           {liveMatch.status !== 'FINISHED' && (details.halftime ? (
             <div className="text-sm font-bold text-white/50">{details.minute !== null && details.minute > 45 ? 'ET' : 'HT'}</div>
           ) : details.minute !== null && (
-            <div className="text-sm text-white/50">{fmtMin(details.minute, details.injuryTime)}</div>
+            <div className="text-sm text-white/50">{fmtMin(details.minute, details.injuryTime, liveMatch.scoreDuration)}</div>
           ))}
           {details.venue && (
             <div className="text-xs text-white/30">{details.venue}</div>
@@ -138,7 +142,7 @@ export async function LiveMatchPanel({ liveMatch, prefetchedDetails }: { liveMat
                   <span className="font-semibold text-white/80">{g.playerName}</span>
                   {g.type === 'OWN_GOAL' && <span className="text-xs font-bold text-orange-400">OG</span>}
                   {g.type === 'PENALTY' && <span className="text-xs font-bold text-yellow-400">P</span>}
-                  <span className="text-xs font-bold text-white/40">{fmtMin(g.minute, g.injuryTime)}</span>
+                  <span className="text-xs font-bold text-white/40">{fmtMin(g.minute, g.injuryTime, liveMatch.scoreDuration)}</span>
                 </div>
               ))}
             </div>
@@ -146,7 +150,7 @@ export async function LiveMatchPanel({ liveMatch, prefetchedDetails }: { liveMat
             <div className="flex flex-col items-end gap-2 p-3">
               {awayGoals.map((g, i) => (
                 <div key={i} className="flex items-center gap-2 text-sm">
-                  <span className="text-xs font-bold text-white/40">{fmtMin(g.minute, g.injuryTime)}</span>
+                  <span className="text-xs font-bold text-white/40">{fmtMin(g.minute, g.injuryTime, liveMatch.scoreDuration)}</span>
                   {g.type === 'OWN_GOAL' && <span className="text-xs font-bold text-orange-400">OG</span>}
                   {g.type === 'PENALTY' && <span className="text-xs font-bold text-yellow-400">P</span>}
                   <span className="font-semibold text-white/80">{g.playerName}</span>
@@ -170,7 +174,7 @@ export async function LiveMatchPanel({ liveMatch, prefetchedDetails }: { liveMat
                 <div key={i} className="flex items-center gap-2 text-sm">
                   <CardBadge card={b.card} />
                   <span className="font-semibold text-white/80">{b.playerName}</span>
-                  <span className="text-xs font-bold text-white/40">{fmtMin(b.minute, b.injuryTime)}</span>
+                  <span className="text-xs font-bold text-white/40">{fmtMin(b.minute, b.injuryTime, liveMatch.scoreDuration)}</span>
                 </div>
               ))}
             </div>
@@ -178,7 +182,7 @@ export async function LiveMatchPanel({ liveMatch, prefetchedDetails }: { liveMat
             <div className="flex flex-col items-end gap-2 p-3">
               {awayBookings.map((b, i) => (
                 <div key={i} className="flex items-center gap-2 text-sm">
-                  <span className="text-xs font-bold text-white/40">{fmtMin(b.minute, b.injuryTime)}</span>
+                  <span className="text-xs font-bold text-white/40">{fmtMin(b.minute, b.injuryTime, liveMatch.scoreDuration)}</span>
                   <span className="font-semibold text-white/80">{b.playerName}</span>
                   <CardBadge card={b.card} />
                 </div>
@@ -202,7 +206,7 @@ export async function LiveMatchPanel({ liveMatch, prefetchedDetails }: { liveMat
                   <span className="font-semibold text-white/80">{s.playerInName}</span>
                   <span className="font-bold text-red-400">↓</span>
                   <span className="text-white/50">{s.playerOutName}</span>
-                  <span className="ml-auto text-xs font-bold text-white/40">{fmtMin(s.minute, s.injuryTime)}</span>
+                  <span className="ml-auto text-xs font-bold text-white/40">{fmtMin(s.minute, s.injuryTime, liveMatch.scoreDuration)}</span>
                 </div>
               ))}
             </div>
@@ -210,7 +214,7 @@ export async function LiveMatchPanel({ liveMatch, prefetchedDetails }: { liveMat
             <div className="flex flex-col items-end gap-2 p-3">
               {awaySubs.map((s, i) => (
                 <div key={i} className="flex items-center gap-1.5 text-sm">
-                  <span className="text-xs font-bold text-white/40">{fmtMin(s.minute, s.injuryTime)}</span>
+                  <span className="text-xs font-bold text-white/40">{fmtMin(s.minute, s.injuryTime, liveMatch.scoreDuration)}</span>
                   <span className="text-white/50">{s.playerOutName}</span>
                   <span className="font-bold text-red-400">↓</span>
                   <span className="font-semibold text-white/80">{s.playerInName}</span>
