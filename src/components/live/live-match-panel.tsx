@@ -66,6 +66,12 @@ export async function LiveMatchPanel({ liveMatch, prefetchedDetails }: { liveMat
 
   const homeGoals = details.goals.filter((g) => g.teamId === homeId)
   const awayGoals = details.goals.filter((g) => g.teamId === awayId)
+  // The API's penalties[] includes in-match penalty goals — filter those out of the shootout display
+  const inMatchPenaltyScorers = new Set(
+    details.goals.filter((g) => g.type === 'PENALTY').map((g) => g.playerName)
+  )
+  const homeShootout = homePenalties.filter((p) => !inMatchPenaltyScorers.has(p.playerName))
+  const awayShootout = awayPenalties.filter((p) => !inMatchPenaltyScorers.has(p.playerName))
   const homeBookings = mergeBookings(details.bookings.filter((b) => b.teamId === homeId))
   const awayBookings = mergeBookings(details.bookings.filter((b) => b.teamId === awayId))
   const homeSubs = details.substitutions.filter((s) => s.teamId === homeId)
@@ -248,14 +254,14 @@ export async function LiveMatchPanel({ liveMatch, prefetchedDetails }: { liveMat
       )}
 
       {/* Penalty Shootout */}
-      {isShootout && (homePenalties.length > 0 || awayPenalties.length > 0) && (
+      {isShootout && (homeShootout.length > 0 || awayShootout.length > 0) && (
         <div className="overflow-hidden rounded-xl border border-white/10 bg-[#0a1628]">
           <div className="border-b border-white/5 px-4 py-2.5 text-xs font-bold uppercase tracking-widest text-white/40">
             🥅 Penalty Shootout
           </div>
           <div className="grid grid-cols-[1fr_1px_1fr]">
             <div className="flex flex-col gap-2 p-3">
-              {homePenalties.map((p, i) => (
+              {homeShootout.map((p, i) => (
                 <div key={i} className="flex items-center gap-2 text-sm">
                   <span className={p.scored ? 'text-green-400' : 'text-red-400'}>{p.scored ? '⚽' : '✗'}</span>
                   <span className="font-semibold text-white/80">{p.playerName}</span>
@@ -264,7 +270,7 @@ export async function LiveMatchPanel({ liveMatch, prefetchedDetails }: { liveMat
             </div>
             <div className="bg-white/5" />
             <div className="flex flex-col items-end gap-2 p-3">
-              {awayPenalties.map((p, i) => (
+              {awayShootout.map((p, i) => (
                 <div key={i} className="flex items-center gap-2 text-sm">
                   <span className="font-semibold text-white/80">{p.playerName}</span>
                   <span className={p.scored ? 'text-green-400' : 'text-red-400'}>{p.scored ? '⚽' : '✗'}</span>
