@@ -20,6 +20,12 @@ function mergeBookings(bookings: Awaited<ReturnType<typeof fetchLiveMatchDetails
   })
 }
 
+function finishedLabel(scoreDuration: string): string {
+  if (scoreDuration === 'PENALTY_SHOOTOUT') return 'Penalties'
+  if (scoreDuration === 'EXTRA_TIME') return 'AET'
+  return 'Full Time'
+}
+
 export async function LiveMatchPanel({ liveMatch }: { liveMatch: NormalizedMatch }) {
   let details: Awaited<ReturnType<typeof fetchLiveMatchDetails>>
   try {
@@ -55,7 +61,11 @@ export async function LiveMatchPanel({ liveMatch }: { liveMatch: NormalizedMatch
         </div>
 
         <div className="flex shrink-0 flex-col items-center gap-1.5">
-          {details.halftime ? (
+          {liveMatch.status === 'FINISHED' ? (
+            <div className="flex items-center gap-2 rounded-full bg-white/10 px-3 py-0.5">
+              <span className="text-xs font-bold uppercase tracking-widest text-white/50">{finishedLabel(liveMatch.scoreDuration)}</span>
+            </div>
+          ) : details.halftime ? (
             <div className="flex items-center gap-2 rounded-full bg-blue-950 px-3 py-0.5">
               <span className="text-xs font-bold uppercase tracking-widest text-blue-300">Half Time</span>
             </div>
@@ -68,11 +78,11 @@ export async function LiveMatchPanel({ liveMatch }: { liveMatch: NormalizedMatch
           <div className="text-5xl font-black tabular-nums text-[#C9A84C]">
             {homeScore} <span className="text-white/30">:</span> {awayScore}
           </div>
-          {details.halftime ? (
+          {liveMatch.status !== 'FINISHED' && (details.halftime ? (
             <div className="text-sm font-bold text-white/50">HT</div>
           ) : details.minute !== null && (
             <div className="text-sm text-white/50">{fmtMin(details.minute, details.injuryTime)}</div>
-          )}
+          ))}
           {details.venue && (
             <div className="text-xs text-white/30">{details.venue}</div>
           )}

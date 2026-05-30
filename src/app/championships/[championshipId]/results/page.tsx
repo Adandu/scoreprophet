@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { ArrowUpRight } from 'lucide-react'
 import { prisma } from '@/lib/db'
 import { requireChampionshipAccess } from '@/lib/championships'
 import { Badge } from '@/components/ui/badge'
@@ -69,9 +70,11 @@ export default async function ChampionshipResultsPage({
       <ChampionshipPageNav championshipId={championship.id} name={championship.name} />
       <h2 className="text-xl font-bold text-white">Results</h2>
       {totalMatches === 0 && <p className="text-white/40">No completed or live matches yet.</p>}
-      {matches.map((match) => (
+      {matches.map((match) => {
+        const detailHref = match.status === 'LIVE' ? '/live' : `/matches/${match.externalId}`
+        return (
         <div key={match.id} className="rounded-xl border border-white/10 bg-white/5 overflow-hidden">
-          <div className="flex items-center justify-between px-4 py-3 border-b border-white/10">
+          <Link href={detailHref} className="flex items-center justify-between px-4 py-3 border-b border-white/10 hover:bg-white/5 transition-colors group">
             <span className="font-semibold text-white">
               {match.homeTeam} {formatDisplayScore(match)} {match.awayTeam}
             </span>
@@ -80,8 +83,9 @@ export default async function ChampionshipResultsPage({
                 <span className="text-xs font-semibold uppercase tracking-wider text-red-400">● Live</span>
               )}
               <span className="text-xs text-white/40">{formatMatchTime(match.kickoff, timezone)}</span>
+              <ArrowUpRight className="h-3.5 w-3.5 text-white/20 group-hover:text-white/50 transition-colors" />
             </div>
-          </div>
+          </Link>
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
@@ -123,7 +127,7 @@ export default async function ChampionshipResultsPage({
             </table>
           </div>
         </div>
-      ))}
+      )})}
       {totalPages > 1 && (
         <div className="flex items-center justify-center gap-4 pt-2">
           {page > 1 ? (
