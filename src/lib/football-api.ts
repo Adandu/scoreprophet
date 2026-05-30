@@ -128,7 +128,7 @@ export interface LiveMatchDetails {
   goals: LiveMatchEvent[]
   bookings: LiveMatchBooking[]
   substitutions: LiveMatchSubstitution[]
-  teamStats: Array<{ teamId: string; teamName: string; type: 'CORNERS' | 'FREE_KICKS' | 'GOAL_KICKS' | 'OFFSIDES' | 'FOULS' | 'SAVES' | 'THROW_INS' | 'SHOTS_ON_GOAL' | 'SHOTS_OFF_GOAL' | 'YELLOW_CARDS' | 'RED_CARDS'; value: number }>
+  teamStats: Array<{ teamId: string; teamName: string; type: 'CORNERS' | 'FREE_KICKS' | 'GOAL_KICKS' | 'OFFSIDES' | 'FOULS' | 'SAVES' | 'THROW_INS' | 'SHOTS' | 'SHOTS_ON_GOAL' | 'SHOTS_OFF_GOAL' | 'YELLOW_CARDS' | 'RED_CARDS'; value: number }>
   homePossession: number | null  // 0–100, null if not available
   halftime: boolean
 }
@@ -511,7 +511,7 @@ export async function fetchLiveMatchDetails(matchId: string | number): Promise<L
   }
 }
 
-function normalizeTeamStatType(value: string | undefined): 'CORNERS' | 'FREE_KICKS' | 'GOAL_KICKS' | 'OFFSIDES' | 'FOULS' | 'SAVES' | 'THROW_INS' | 'SHOTS_ON_GOAL' | 'SHOTS_OFF_GOAL' | 'YELLOW_CARDS' | 'RED_CARDS' | null {
+function normalizeTeamStatType(value: string | undefined): 'CORNERS' | 'FREE_KICKS' | 'GOAL_KICKS' | 'OFFSIDES' | 'FOULS' | 'SAVES' | 'THROW_INS' | 'SHOTS' | 'SHOTS_ON_GOAL' | 'SHOTS_OFF_GOAL' | 'YELLOW_CARDS' | 'RED_CARDS' | null {
   const n = String(value ?? '').toLowerCase()
   if (n === 'corner_kicks') return 'CORNERS'
   if (n === 'free_kicks') return 'FREE_KICKS'
@@ -520,6 +520,7 @@ function normalizeTeamStatType(value: string | undefined): 'CORNERS' | 'FREE_KIC
   if (n === 'fouls') return 'FOULS'
   if (n === 'saves') return 'SAVES'
   if (n === 'throw_ins') return 'THROW_INS'
+  if (n === 'shots') return 'SHOTS'
   if (n === 'shots_on_goal') return 'SHOTS_ON_GOAL'
   if (n === 'shots_off_goal') return 'SHOTS_OFF_GOAL'
   if (n === 'yellow_cards') return 'YELLOW_CARDS'

@@ -1,6 +1,6 @@
 import { Fragment } from 'react'
 
-export type TeamStat = { teamId: string; teamName: string; type: 'FOULS' | 'CORNERS' | 'OFFSIDES' | 'FREE_KICKS' | 'GOAL_KICKS' | 'SAVES' | 'THROW_INS' | 'SHOTS_ON_GOAL' | 'SHOTS_OFF_GOAL' | 'YELLOW_CARDS' | 'RED_CARDS'; value: number }
+export type TeamStat = { teamId: string; teamName: string; type: 'FOULS' | 'CORNERS' | 'OFFSIDES' | 'FREE_KICKS' | 'GOAL_KICKS' | 'SAVES' | 'THROW_INS' | 'SHOTS' | 'SHOTS_ON_GOAL' | 'SHOTS_OFF_GOAL' | 'YELLOW_CARDS' | 'RED_CARDS'; value: number }
 
 export function MatchStatsRow({
   homeId,
@@ -22,6 +22,7 @@ export function MatchStatsRow({
     { label: 'Fouls', type: 'FOULS' },
     { label: 'Saves', type: 'SAVES' },
     { label: 'Throw-Ins', type: 'THROW_INS' },
+    { label: 'Shots', type: 'SHOTS' },
     { label: 'Shots On Goal', type: 'SHOTS_ON_GOAL' },
     { label: 'Shots Off Goal', type: 'SHOTS_OFF_GOAL' },
     { label: 'Yellow Cards', type: 'YELLOW_CARDS' },
