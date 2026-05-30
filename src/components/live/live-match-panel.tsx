@@ -58,6 +58,9 @@ export async function LiveMatchPanel({ liveMatch, prefetchedDetails }: { liveMat
   const awayBookings = mergeBookings(details.bookings.filter((b) => b.teamId === awayId))
   const homeSubs = details.substitutions.filter((s) => s.teamId === homeId)
   const awaySubs = details.substitutions.filter((s) => s.teamId === awayId)
+  const isShootout = details.penaltyShootout.length > 0 || liveMatch.scoreDuration === 'PENALTY_SHOOTOUT'
+  const homePenalties = details.penaltyShootout.filter((p) => p.teamId === homeId)
+  const awayPenalties = details.penaltyShootout.filter((p) => p.teamId === awayId)
 
   return (
     <div className="space-y-4">
@@ -78,7 +81,7 @@ export async function LiveMatchPanel({ liveMatch, prefetchedDetails }: { liveMat
                 {details.minute !== null && details.minute > 45 ? 'ET Break' : 'Half Time'}
               </span>
             </div>
-          ) : liveMatch.scoreDuration === 'PENALTY_SHOOTOUT' ? (
+          ) : isShootout ? (
             <div className="flex items-center gap-2 rounded-full bg-purple-950 px-3 py-0.5">
               <span className="h-2 w-2 animate-pulse rounded-full bg-purple-400" />
               <span className="text-xs font-bold uppercase tracking-widest text-purple-300">Penalties</span>
@@ -94,7 +97,7 @@ export async function LiveMatchPanel({ liveMatch, prefetchedDetails }: { liveMat
           </div>
           {liveMatch.status !== 'FINISHED' && (details.halftime ? (
             <div className="text-sm font-bold text-white/50">{details.minute !== null && details.minute > 45 ? 'ET' : 'HT'}</div>
-          ) : liveMatch.scoreDuration === 'PENALTY_SHOOTOUT' ? (
+          ) : isShootout ? (
             <div className="text-sm font-bold text-white/50">Pens</div>
           ) : details.minute !== null && (
             <div className="text-sm text-white/50">{fmtMin(details.minute, details.injuryTime, liveMatch.scoreDuration)}</div>
@@ -225,6 +228,34 @@ export async function LiveMatchPanel({ liveMatch, prefetchedDetails }: { liveMat
                   <span className="font-bold text-red-400">↓</span>
                   <span className="font-semibold text-white/80">{s.playerInName}</span>
                   <span className="font-bold text-blue-400">↑</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Penalty Shootout */}
+      {isShootout && (homePenalties.length > 0 || awayPenalties.length > 0) && (
+        <div className="overflow-hidden rounded-xl border border-white/10 bg-[#0a1628]">
+          <div className="border-b border-white/5 px-4 py-2.5 text-xs font-bold uppercase tracking-widest text-white/40">
+            🥅 Penalty Shootout
+          </div>
+          <div className="grid grid-cols-[1fr_1px_1fr]">
+            <div className="flex flex-col gap-2 p-3">
+              {homePenalties.map((p, i) => (
+                <div key={i} className="flex items-center gap-2 text-sm">
+                  <span className={p.scored ? 'text-green-400' : 'text-red-400'}>{p.scored ? '⚽' : '✗'}</span>
+                  <span className="font-semibold text-white/80">{p.playerName}</span>
+                </div>
+              ))}
+            </div>
+            <div className="bg-white/5" />
+            <div className="flex flex-col items-end gap-2 p-3">
+              {awayPenalties.map((p, i) => (
+                <div key={i} className="flex items-center gap-2 text-sm">
+                  <span className="font-semibold text-white/80">{p.playerName}</span>
+                  <span className={p.scored ? 'text-green-400' : 'text-red-400'}>{p.scored ? '⚽' : '✗'}</span>
                 </div>
               ))}
             </div>

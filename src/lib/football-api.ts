@@ -131,6 +131,7 @@ export interface LiveMatchDetails {
   teamStats: Array<{ teamId: string; teamName: string; type: 'CORNERS' | 'FREE_KICKS' | 'GOAL_KICKS' | 'OFFSIDES' | 'FOULS' | 'SAVES' | 'THROW_INS' | 'SHOTS' | 'SHOTS_ON_GOAL' | 'SHOTS_OFF_GOAL' | 'YELLOW_CARDS' | 'RED_CARDS'; value: number }>
   homePossession: number | null  // 0–100, null if not available
   halftime: boolean
+  penaltyShootout: Array<{ playerName: string; teamId: string; scored: boolean }>
 }
 
 const STAGE_MAP: Record<string, Stage> = {
@@ -508,6 +509,12 @@ export async function fetchLiveMatchDetails(matchId: string | number): Promise<L
     teamStats,
     homePossession,
     halftime: m.status === 'PAUSED',
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    penaltyShootout: (m.penalties ?? []).map((p: any) => ({
+      playerName: p.player?.name ?? '',
+      teamId: String(p.team?.id ?? ''),
+      scored: p.scored === true,
+    })),
   }
 }
 
