@@ -8,7 +8,6 @@ function fmtMin(minute: number, injuryTime?: number | null, scoreDuration?: stri
   if (injuryTime != null && injuryTime > 0) return `${minute}+${injuryTime}'`
   const isET = scoreDuration === 'EXTRA_TIME' || scoreDuration === 'PENALTY_SHOOTOUT'
   if (minute > 120) return `120+${minute - 120}'`
-  if (minute > 105 && isET) return `105+${minute - 105}'`
   if (minute > 90 && !isET) return `90+${minute - 90}'`
   return `${minute}'`
 }
