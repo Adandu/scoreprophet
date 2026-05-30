@@ -3,7 +3,8 @@ import Link from 'next/link'
 import { prisma } from '@/lib/db'
 import { requireAuth } from '@/lib/auth'
 import { LiveMatchPanel } from '@/components/live/live-match-panel'
-import type { NormalizedMatch } from '@/lib/football-api'
+import { fetchLiveMatchDetails, type NormalizedMatch, type LiveMatchDetails } from '@/lib/football-api'
+import { canCallMatchDetailApi } from '@/lib/rate-limiter'
 import type { Stage } from '@/lib/types'
 
 export const revalidate = 0
@@ -14,6 +15,28 @@ export default async function MatchDetailPage({ params }: { params: Promise<{ ma
 
   const match = await prisma.match.findUnique({ where: { externalId: matchId } })
   if (!match || match.status !== 'FINISHED') notFound()
+
+  const hasCachedData = !!match.detailJson
+  let prefetchedDetails: LiveMatchDetails | undefined
+
+  // Call API if under rate limit OR if there's no cached data yet
+  if (!hasCachedData || canCallMatchDetailApi()) {
+    try {
+      prefetchedDetails = await fetchLiveMatchDetails(match.externalId)
+      await prisma.match.update({
+        where: { id: match.id },
+        data: { detailJson: JSON.stringify(prefetchedDetails) },
+      })
+    } catch {
+      // API failed — fall back to cache
+      if (match.detailJson) {
+        try { prefetchedDetails = JSON.parse(match.detailJson) } catch { /* corrupted */ }
+      }
+    }
+  } else {
+    // Rate limited — serve from cache
+    try { prefetchedDetails = JSON.parse(match.detailJson) } catch { /* corrupted */ }
+  }
 
   const liveMatch: NormalizedMatch = {
     externalId: match.externalId,
@@ -44,7 +67,7 @@ export default async function MatchDetailPage({ params }: { params: Promise<{ ma
       <Link href="javascript:history.back()" className="text-sm text-white/40 hover:text-white/70 transition-colors">
         ← Back
       </Link>
-      <LiveMatchPanel liveMatch={liveMatch} />
+      <LiveMatchPanel liveMatch={liveMatch} prefetchedDetails={prefetchedDetails} />
     </div>
   )
 }
