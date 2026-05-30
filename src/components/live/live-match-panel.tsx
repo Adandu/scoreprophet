@@ -49,8 +49,20 @@ export async function LiveMatchPanel({ liveMatch, prefetchedDetails }: { liveMat
 
   const homeId = details.homeTeam.id
   const awayId = details.awayTeam.id
-  const homeScore = details.homeScore ?? 0
-  const awayScore = details.awayScore ?? 0
+  const isShootout = details.penaltyShootout.length > 0 || liveMatch.scoreDuration === 'PENALTY_SHOOTOUT'
+  const homePenalties = details.penaltyShootout.filter((p) => p.teamId === homeId)
+  const awayPenalties = details.penaltyShootout.filter((p) => p.teamId === awayId)
+
+  // During shootout the API adds penalty goals into fullTime — use regularTime as the clean match score
+  const homeScore = isShootout
+    ? (liveMatch.regularTimeHomeScore ?? liveMatch.homeScore ?? details.homeScore ?? 0)
+    : (details.homeScore ?? 0)
+  const awayScore = isShootout
+    ? (liveMatch.regularTimeAwayScore ?? liveMatch.awayScore ?? details.awayScore ?? 0)
+    : (details.awayScore ?? 0)
+  // Penalty tally: prefer liveMatch fields (populated when FINISHED), fall back to counting kicks
+  const homePenScore = liveMatch.penaltiesHomeScore ?? homePenalties.filter((p) => p.scored).length
+  const awayPenScore = liveMatch.penaltiesAwayScore ?? awayPenalties.filter((p) => p.scored).length
 
   const homeGoals = details.goals.filter((g) => g.teamId === homeId)
   const awayGoals = details.goals.filter((g) => g.teamId === awayId)
@@ -58,9 +70,6 @@ export async function LiveMatchPanel({ liveMatch, prefetchedDetails }: { liveMat
   const awayBookings = mergeBookings(details.bookings.filter((b) => b.teamId === awayId))
   const homeSubs = details.substitutions.filter((s) => s.teamId === homeId)
   const awaySubs = details.substitutions.filter((s) => s.teamId === awayId)
-  const isShootout = details.penaltyShootout.length > 0 || liveMatch.scoreDuration === 'PENALTY_SHOOTOUT'
-  const homePenalties = details.penaltyShootout.filter((p) => p.teamId === homeId)
-  const awayPenalties = details.penaltyShootout.filter((p) => p.teamId === awayId)
 
   return (
     <div className="space-y-4">
@@ -95,11 +104,14 @@ export async function LiveMatchPanel({ liveMatch, prefetchedDetails }: { liveMat
           <div className="text-5xl font-black tabular-nums text-[#C9A84C]">
             {homeScore} <span className="text-white/30">:</span> {awayScore}
           </div>
+          {isShootout && (
+            <div className="text-sm font-semibold text-white/60">
+              ({homePenScore} : {awayPenScore}) pens
+            </div>
+          )}
           {liveMatch.status !== 'FINISHED' && (details.halftime ? (
             <div className="text-sm font-bold text-white/50">{details.minute !== null && details.minute > 45 ? 'ET' : 'HT'}</div>
-          ) : isShootout ? (
-            <div className="text-sm font-bold text-white/50">Pens</div>
-          ) : details.minute !== null && (
+          ) : isShootout ? null : details.minute !== null && (
             <div className="text-sm text-white/50">{fmtMin(details.minute, details.injuryTime, liveMatch.scoreDuration)}</div>
           ))}
           {details.venue && (
