@@ -25,8 +25,6 @@ export function MatchStatsRow({
     { label: 'Shots', type: 'SHOTS' },
     { label: 'Shots On Goal', type: 'SHOTS_ON_GOAL' },
     { label: 'Shots Off Goal', type: 'SHOTS_OFF_GOAL' },
-    { label: 'Yellow Cards', type: 'YELLOW_CARDS' },
-    { label: 'Red Cards', type: 'RED_CARDS' },
   ]
 
   return (
