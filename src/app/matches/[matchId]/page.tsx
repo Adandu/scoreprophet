@@ -23,10 +23,15 @@ export default async function MatchDetailPage({ params }: { params: Promise<{ ma
   if (!hasCachedData || canCallMatchDetailApi()) {
     try {
       prefetchedDetails = await fetchLiveMatchDetails(match.externalId)
-      await prisma.match.update({
-        where: { id: match.id },
-        data: { detailJson: JSON.stringify(prefetchedDetails) },
-      })
+      // Only cache if the response looks complete (has goals for matches that should have them)
+      const hasGoals = prefetchedDetails.goals.length > 0
+      const expectsGoals = (match.homeScore ?? 0) + (match.awayScore ?? 0) > 0
+      if (hasGoals || !expectsGoals) {
+        await prisma.match.update({
+          where: { id: match.id },
+          data: { detailJson: JSON.stringify(prefetchedDetails) },
+        })
+      }
     } catch {
       // API failed — fall back to cache
       if (match.detailJson) {
