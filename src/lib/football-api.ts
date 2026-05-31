@@ -392,11 +392,17 @@ export async function fetchLiveMatchDetails(matchId: string | number): Promise<L
     Offence: 3, 'Right Winger': 3, 'Left Winger': 3, 'Centre-Forward': 3, Striker: 3,
   }
 
-  // Within Offence group, wingers before centre-forwards so the lone striker lands at the deepest slot
-  const OFFENCE_SUBORDER: Record<string, number> = {
-    'Right Winger': 0, 'Left Winger': 0, Offence: 0,
-    'Centre-Forward': 1, Striker: 1,
+  // Lateral sort order within each line: Left-side(0) → Centre(1) → Right-side(2)
+  // Left-flank players appear at the top of the screen, right-flank at the bottom.
+  const LATERAL_ORDER: Record<string, number> = {
+    'Left-Back': 0, 'Left Midfield': 0, 'Left Winger': 0,
+    'Centre-Back': 1, Defence: 1, 'Defensive Midfield': 1, 'Central Midfield': 1,
+    Midfield: 1, 'Attacking Midfield': 1, 'Centre-Forward': 1, Striker: 1, Offence: 1, 'Wing-Back': 1,
+    'Right-Back': 2, 'Right Midfield': 2, 'Right Winger': 2,
   }
+
+  const lateralSort = (players: LivePlayer[]) =>
+    [...players].sort((a, b) => (LATERAL_ORDER[a.position] ?? 1) - (LATERAL_ORDER[b.position] ?? 1))
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const normalizePlayer = (p: any): LivePlayer => ({
@@ -421,10 +427,13 @@ export async function fetchLiveMatchDetails(matchId: string | number): Promise<L
       backLineSize <= 3
         ? defs.filter((p) => p.position !== 'Centre-Back' && p.position !== 'Defence')
         : []
-    const sortedFwds = [...fwds].sort(
-      (a, b) => (OFFENCE_SUBORDER[a.position] ?? 0) - (OFFENCE_SUBORDER[b.position] ?? 0)
-    )
-    return [...gks, ...backLine, ...overflowDefs, ...mids, ...sortedFwds]
+    return [
+      ...gks,
+      ...lateralSort(backLine),
+      ...lateralSort(overflowDefs),
+      ...lateralSort(mids),
+      ...lateralSort(fwds),
+    ]
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
